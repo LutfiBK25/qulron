@@ -1,20 +1,13 @@
-version: "3.9"
+version: '3.9'
 
 services:
-  qulron-yms-backend:
-    image: qulron-backend:1.0.0
-    container_name: qulron-backend
+  qulron-backend:
+    image: qulron-engine:1.0.0
+    container_name: qulron-engine
     restart: always
-
-    # Map host port -> container port
     ports:
       - "30060:30060"
-
-    mem_limit: 2.5G
-
-    # Load environment variables from .env file (optional)
     env_file: .env
-
-    # Persist logs to host machine
+    mem_limit: 1.5g       # Limit memory to 1.5 GB
     volumes:
-      - ./logs:/app/logs
+      - ./logs:/app/logs  # Persist Spring Boot logs to host VM
