@@ -1,0 +1,42 @@
+<div class="popup-backdrop" [ngClass]="{ active: visible }">
+  <div class="popup-box verification-popup" [ngClass]="{ active: visible }">
+    <div class="popup-header">
+      <h3>{{ "PHONE_VERIFICATION" | translate }}</h3>
+      <button class="close-btn" (click)="close()">&times;</button>
+    </div>
+
+    <div class="popup-content">
+      <p>{{ "VERIFICATION_SENT_TO" | translate }}</p>
+      <p class="phone-number">{{ phoneNumber }}</p>
+      <p class="instruction">{{ "ENTER_6_DIGIT_CODE" | translate }}</p>
+
+      <form [formGroup]="verificationForm" (ngSubmit)="onSubmit()">
+        <div class="input-container">
+          <input
+            type="text"
+            formControlName="verificationCode"
+            [placeholder]="'ENTER_6_DIGIT_CODE_PLACEHOLDER' | translate"
+            maxlength="6"
+            pattern="[0-9]*"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+          />
+        </div>
+
+        <div class="actions">
+          <button
+            type="submit"
+            class="verify-btn"
+            [disabled]="!verificationForm.valid || isLoading"
+          >
+            <span *ngIf="!isLoading">{{ "VERIFY_CODE" | translate }}</span>
+            <span *ngIf="isLoading">{{ "VERIFYING" | translate }}</span>
+          </button>
+          <button type="button" class="cancel-btn" (click)="close()">
+            {{ "CANCEL" | translate }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

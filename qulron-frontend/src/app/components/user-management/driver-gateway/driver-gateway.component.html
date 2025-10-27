@@ -1,0 +1,112 @@
+<div class="comp-container">
+  <div class="container" [ngClass]="{ driver: isDriver, broker: isBroker }">
+    <div class="form-box driver">
+      <form [formGroup]="driverForm" (ngSubmit)="onDriverSubmit()">
+        <h1>{{ "DRIVER_CHECKIN" | translate }}</h1>
+        <p>{{ "ENTER_PHONE_FOR_ORDER" | translate }}</p>
+        <p>{{ "SEND_VERIFICATION_CODE" | translate }}</p>
+
+        <div class="input-container">
+          <div class="input-box">
+            <input
+              formControlName="phoneNumber"
+              #driverPhoneNumber
+              type="tel"
+              [placeholder]="'DRIVER_PHONE_NUMBER' | translate"
+              required
+              maxlength="12"
+              minlength="12"
+              (input)="formatPhoneNumber(driverPhoneNumber)"
+              [title]="'DRIVER_PHONE_NUMBER' | translate"
+            />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="20px"
+              viewBox="0 -960 960 960"
+              width="20px"
+              fill="#333"
+            >
+              <path
+                d="M480-40q-33 0-56.5-23.5T400-120q0-33 23.5-56.5T480-200q33 0 56.5 23.5T560-120q0 33-23.5 56.5T480-40ZM240-760q-33 0-56.5-23.5T160-840q0-33 23.5-56.5T240-920q33 0 56.5 23.5T320-840q0 33-23.5 56.5T240-760Zm0 240q-33 0-56.5-23.5T160-600q0-33 23.5-56.5T240-680q33 0 56.5 23.5T320-600q0 33-23.5 56.5T240-520Zm0 240q-33 0-56.5-23.5T160-360q0-33 23.5-56.5T240-440q33 0 56.5 23.5T320-360q0 33-23.5 56.5T240-280Zm480-480q-33 0-56.5-23.5T640-840q0-33 23.5-56.5T720-920q33 0 56.5 23.5T800-840q0 33-23.5 56.5T720-760ZM480-280q-33 0-56.5-23.5T400-360q0-33 23.5-56.5T480-440q33 0 56.5 23.5T560-360q0 33-23.5 56.5T480-280Zm240 0q-33 0-56.5-23.5T640-360q0-33 23.5-56.5T720-440q33 0 56.5 23.5T800-360q0 33-23.5 56.5T720-280Zm0-240q-33 0-56.5-23.5T640-600q0-33 23.5-56.5T720-680q33 0 56.5 23.5T800-600q0 33-23.5 56.5T720-520Zm-240 0q-33 0-56.5-23.5T400-600q0-33 23.5-56.5T480-680q33 0 56.5 23.5T560-600q0 33-23.5 56.5T480-520Zm0-240q-33 0-56.5-23.5T400-840q0-33 23.5-56.5T480-920q33 0 56.5 23.5T560-840q0 33-23.5 56.5T480-760Z"
+              />
+            </svg>
+          </div>
+        </div>
+        <button type="submit" class="btn" [disabled]="!driverForm.valid">
+          {{ "SEND_CODE" | translate }}
+        </button>
+        <!-- Consent notice with info buttons -->
+        <div class="consent-notice">
+          <p>
+            {{ "SMS_CONSENT" | translate }}
+          </p>
+          <div class="consent-buttons">
+            <button type="button" class="info-btn" (click)="showSMSTerms()">
+              {{ "SMS_TERMS" | translate }}
+            </button>
+            <button type="button" class="info-btn" (click)="showSMSPrivacy()">
+              {{ "SMS_PRIVACY" | translate }}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="toggle-box"></div>
+
+    <!-- Verification Popup -->
+    <app-verification-popup
+      [visible]="showVerificationPopup"
+      [isLoading]="isVerifying"
+      [clearInput]="clearVerificationInput"
+      (codeSubmitted)="onVerificationCodeSubmitted($event)"
+      (popupClosed)="onVerificationPopupClosed()"
+    ></app-verification-popup>
+  </div>
+
+  <!-- SMS Terms Popup -->
+  <div class="popup-backdrop" [ngClass]="{ active: showTermsPopup }">
+    <div class="popup-box terms-popup" [ngClass]="{ active: showTermsPopup }">
+      <div class="popup-header">
+        <h3>{{ "SMS_TERMS_TITLE" | translate }}</h3>
+        <button class="close-btn" (click)="closeTermsPopup()">&times;</button>
+      </div>
+      <div class="popup-content">
+        <div class="terms-content">
+          <h4>{{ "SMS_TERMS_SUBTITLE" | translate }}</h4>
+          <ul>
+            <li>{{ "SMS_TERMS_1" | translate }}</li>
+            <li>{{ "SMS_TERMS_2" | translate }}</li>
+            <li>{{ "SMS_TERMS_3" | translate }}</li>
+            <li>{{ "SMS_TERMS_4" | translate }}</li>
+            <li>{{ "SMS_TERMS_5" | translate }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SMS Privacy Popup -->
+  <div class="popup-backdrop" [ngClass]="{ active: showPrivacyPopup }">
+    <div
+      class="popup-box privacy-popup"
+      [ngClass]="{ active: showPrivacyPopup }"
+    >
+      <div class="popup-header">
+        <h3>{{ "SMS_PRIVACY_TITLE" | translate }}</h3>
+        <button class="close-btn" (click)="closePrivacyPopup()">&times;</button>
+      </div>
+      <div class="popup-content">
+        <div class="privacy-content">
+          <h4>{{ "SMS_PRIVACY_SUBTITLE" | translate }}</h4>
+          <ul>
+            <li>{{ "SMS_PRIVACY_1" | translate }}</li>
+            <li>{{ "SMS_PRIVACY_2" | translate }}</li>
+            <li>{{ "SMS_PRIVACY_3" | translate }}</li>
+            <li>{{ "SMS_PRIVACY_4" | translate }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

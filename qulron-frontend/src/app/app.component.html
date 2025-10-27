@@ -1,0 +1,22 @@
+<!-- This is a test button to open the popup -->
+<!-- <button (click)="openPopup()">Open Popup</button> -->
+
+<app-custom-popup></app-custom-popup>
+<app-language-picker
+  *ngIf="showLanguagePicker"
+  (languageSelected)="onLanguageSelected($event)"
+>
+</app-language-picker>
+<ng-container *ngIf="!showLanguagePicker">
+  <ng-container *ngIf="!isLoggedIn">
+    <router-outlet></router-outlet>
+  </ng-container>
+
+  <ng-container *ngIf="isLoggedIn && userRole === UserRole.Driver">
+    <app-driver-dashboard></app-driver-dashboard>
+  </ng-container>
+
+  <ng-container *ngIf="isLoggedIn && userRole === UserRole.Broker">
+    <app-broker-dashboard></app-broker-dashboard>
+  </ng-container>
+</ng-container>

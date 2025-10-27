@@ -1,0 +1,18 @@
+<div class="comp-container">
+  <div class="language-picker">
+    <h2 class="animated-title" [class.fade-out]="isAnimating">
+      {{ currentTitle.text }}
+    </h2>
+    <button (click)="pick('en')" data-lang="en">English</button>
+    <button (click)="pick('es')" data-lang="es">Español</button>
+    <button (click)="pick('zh')" data-lang="zh">中文</button>
+    <button (click)="pick('hi')" data-lang="hi">हिंदी</button>
+    <button (click)="pick('tl')" data-lang="tl">Tagalog</button>
+    <button (click)="pick('vi')" data-lang="vi">Tiếng Việt</button>
+    <button (click)="pick('ar')" data-lang="ar">العربية</button>
+    <button (click)="pick('fr')" data-lang="fr">Français</button>
+    <button (click)="pick('ko')" data-lang="ko">한국어 / 조선말</button>
+    <button (click)="pick('ru')" data-lang="ru">Русский</button>
+    <button (click)="pick('de')" data-lang="de">Deutsch</button>
+  </div>
+</div>

@@ -1,0 +1,31 @@
+package com.qulron.qulron_engine.entity;
+
+import com.qulron.qulron_engine.enums.Status;
+import com.qulron.qulron_engine.utility.StatusConverter;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "t_load_detail")
+@Getter
+@Setter
+public class LoadDetail {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ld_id")
+    private Long id;
+
+    @Column(name = "load_id", nullable = false, length = 30)
+    private String loadId;
+
+    @Column(name = "order_number", nullable = false, length = 30)
+    private String orderNumber;
+
+    @Convert(converter = StatusConverter.class)
+    @Column(name = "status", nullable = false)
+    private Status orderStatus;
+
+    @Column(name = "is_married_load")
+    private Boolean isMarriedLoad = false;
+}

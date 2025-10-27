@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  qulron-yms-backend:
+    image: qulron-backend:1.0.0
+    container_name: qulron-backend
+    restart: always
+
+    # Map host port -> container port
+    ports:
+      - "30060:30060"
+
+    mem_limit: 2.5G
+
+    # Load environment variables from .env file (optional)
+    env_file: .env
+
+    # Persist logs to host machine
+    volumes:
+      - ./logs:/app/logs

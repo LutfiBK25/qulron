@@ -1,0 +1,89 @@
+.comp-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
+  background: linear-gradient(90deg, #e2e2e2, #f8f6d7);
+}
+
+.language-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  background: #f9f9f9;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 2rem 1.5rem;
+  margin: 20px;
+  border-radius: 30px;
+  max-width: 450px;
+  width: 450px;
+}
+
+.language-picker h2 {
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-size: 1.4rem !important;
+  font-weight: 600;
+  text-align: center;
+  min-height: 2.5rem; /* Fixed height to prevent layout shift */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* iPhone-style smooth animation */
+.animated-title {
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.animated-title.fade-out {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* Enhanced button animations */
+.language-picker button {
+  margin: 0.5rem 0;
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  background: #00c4b3;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  overflow: hidden;
+}
+
+.language-picker button:hover {
+  background: #fc7ab0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(252, 122, 176, 0.3);
+}
+
+.language-picker button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(252, 122, 176, 0.2);
+}
+
+/* RTL support for Arabic */
+.language-picker button[data-lang="ar"] {
+  direction: rtl;
+}
+
+@media screen and (max-width: 650px) {
+  .language-picker {
+    height: calc(100vh - 40px);
+  }
+
+  .language-picker h2 {
+    font-size: 1.2rem;
+    min-height: 2rem;
+  }
+}

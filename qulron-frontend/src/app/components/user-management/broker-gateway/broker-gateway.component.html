@@ -1,0 +1,148 @@
+<div class="comp-container">
+  <div class="container" [ngClass]="{ driver: isDriver, broker: isBroker }">
+    <div class="form-box broker">
+      <form [formGroup]="brokerForm" (ngSubmit)="onSubmitOrder()">
+        <h1>{{ "WELCOME" | translate }}</h1>
+        <p>{{ "FILL_FORM_BEFORE_DRIVER" | translate }}</p>
+        <div class="input-container">
+          <div class="input-box">
+            <input
+              formControlName="orderNumber"
+              type="text"
+              [placeholder]="'ORDER_NUMBER' | translate"
+              required
+              (focus)="showOrderNote = true"
+              (blur)="showOrderNote = false"
+            />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="20px"
+              viewBox="0 -960 960 960"
+              width="20px"
+              fill="#333"
+            >
+              <path
+                d="M160-160v-516L82-846l72-34 94 202h464l94-202 72 34-78 170v516H160Zm240-280h160q17 0 28.5-11.5T600-480q0-17-11.5-28.5T560-520H400q-17 0-28.5 11.5T360-480q0 17 11.5 28.5T400-440ZM240-240h480v-358H240v358Zm0 0v-358 358Z"
+              />
+            </svg>
+          </div>
+          <!-- Order number note that appears when field is focused -->
+          <div class="input-box-note" *ngIf="showOrderNote">
+            <p>{{ "ORDER_NUMBER_NOTE" | translate }}</p>
+          </div>
+          <div class="input-box">
+            <!-- <input
+              formControlName="brokerName"
+              type="text"
+              [placeholder]="'BROKER_NAME' | translate"
+              required
+            /> -->
+            <input
+              formControlName="state"
+              type="text"
+              [placeholder]="'DEST_STATE' | translate"
+              required
+              (focus)="showStateNote = true"
+              (blur)="showStateNote = false"
+            />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="20px"
+              viewBox="0 -960 960 960"
+              width="20px"
+              fill="#333"
+            >
+              <path
+                d="M200-280v-280h80v280h-80Zm240 0v-280h80v280h-80ZM80-120v-80h800v80H80Zm600-160v-280h80v280h-80ZM80-640v-80l400-200 400 200v80H80Zm178-80h444-444Zm0 0h444L480-830 258-720Z"
+              />
+            </svg>
+            <!-- Order number note that appears when field is focused -->
+            <div class="input-box-note" *ngIf="showStateNote">
+              <p>{{ "DEST_STATE_NOTE" | translate }}</p>
+            </div>
+          </div>
+          <div class="input-box">
+            <input
+              formControlName="driverName"
+              type="text"
+              [placeholder]="'DRIVER_NAME' | translate"
+              required
+            />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="20px"
+              viewBox="0 -960 960 960"
+              width="20px"
+              fill="#333"
+            >
+              <path
+                d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Zm80-80h480v-32q0-11-5.5-20T700-306q-54-27-109-40.5T480-360q-56 0-111 13.5T260-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm0-80Zm0 400Z"
+              />
+            </svg>
+          </div>
+          <div class="input-box">
+            <input
+              formControlName="phoneNumber"
+              #driverPhoneInput
+              type="tel"
+              [placeholder]="'DRIVER_PHONE_NUMBER' | translate"
+              required
+              maxlength="12"
+              minlength="12"
+              (input)="formatPhoneNumber(driverPhoneInput)"
+              [title]="'DRIVER_PHONE_NUMBER' | translate"
+            />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="20px"
+              viewBox="0 -960 960 960"
+              width="20px"
+              fill="#333"
+            >
+              <path
+                d="M480-40q-33 0-56.5-23.5T400-120q0-33 23.5-56.5T480-200q33 0 56.5 23.5T560-120q0 33-23.5 56.5T480-40ZM240-760q-33 0-56.5-23.5T160-840q0-33 23.5-56.5T240-920q33 0 56.5 23.5T320-840q0 33-23.5 56.5T240-760Zm0 240q-33 0-56.5-23.5T160-600q0-33 23.5-56.5T240-680q33 0 56.5 23.5T320-600q0 33-23.5 56.5T240-520Zm0 240q-33 0-56.5-23.5T160-360q0-33 23.5-56.5T240-440q33 0 56.5 23.5T320-360q0 33-23.5 56.5T240-280Zm480-480q-33 0-56.5-23.5T640-840q0-33 23.5-56.5T720-920q33 0 56.5 23.5T800-840q0 33-23.5 56.5T720-760ZM480-280q-33 0-56.5-23.5T400-360q0-33 23.5-56.5T480-440q33 0 56.5 23.5T560-360q0 33-23.5 56.5T480-280Zm240 0q-33 0-56.5-23.5T640-360q0-33 23.5-56.5T720-440q33 0 56.5 23.5T800-360q0 33-23.5 56.5T720-280Zm0-240q-33 0-56.5-23.5T640-600q0-33 23.5-56.5T720-680q33 0 56.5 23.5T800-600q0 33-23.5 56.5T720-520Zm-240 0q-33 0-56.5-23.5T400-600q0-33 23.5-56.5T480-680q33 0 56.5 23.5T560-600q0 33-23.5 56.5T480-520Zm0-240q-33 0-56.5-23.5T400-840q0-33 23.5-56.5T480-920q33 0 56.5 23.5T560-840q0 33-23.5 56.5T480-760Z"
+              />
+            </svg>
+          </div>
+          <div class="input-box">
+            <input
+              formControlName="confirmPhoneNumber"
+              #confirmPhoneInput
+              type="tel"
+              [placeholder]="'CONFIRM_PHONE_NUMBER' | translate"
+              required
+              maxlength="12"
+              minlength="12"
+              (input)="formatPhoneNumber(confirmPhoneInput)"
+              [title]="'CONFIRM_PHONE_NUMBER' | translate"
+            />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="20px"
+              viewBox="0 -960 960 960"
+              width="20px"
+              fill="#333"
+            >
+              <path
+                d="M480-40q-33 0-56.5-23.5T400-120q0-33 23.5-56.5T480-200q33 0 56.5 23.5T560-120q0 33-23.5 56.5T480-40ZM240-760q-33 0-56.5-23.5T160-840q0-33 23.5-56.5T240-920q33 0 56.5 23.5T320-840q0 33-23.5 56.5T240-760Zm0 240q-33 0-56.5-23.5T160-600q0-33 23.5-56.5T240-680q33 0 56.5 23.5T320-600q0 33-23.5 56.5T240-520Zm0 240q-33 0-56.5-23.5T160-360q0-33 23.5-56.5T240-440q33 0 56.5 23.5T320-360q0 33-23.5 56.5T240-280Zm480-480q-33 0-56.5-23.5T640-840q0-33 23.5-56.5T720-920q33 0 56.5 23.5T800-840q0 33-23.5 56.5T720-760ZM480-280q-33 0-56.5-23.5T400-360q0-33 23.5-56.5T480-440q33 0 56.5 23.5T560-360q0 33-23.5 56.5T480-280Zm240 0q-33 0-56.5-23.5T640-360q0-33 23.5-56.5T720-440q33 0 56.5 23.5T800-360q0 33-23.5 56.5T720-280Zm0-240q-33 0-56.5-23.5T640-600q0-33 23.5-56.5T720-680q33 0 56.5 23.5T800-600q0 33-23.5 56.5T720-520Zm-240 0q-33 0-56.5-23.5T400-600q0-33 23.5-56.5T480-680q33 0 56.5 23.5T560-600q0 33-23.5 56.5T480-520Zm0-240q-33 0-56.5-23.5T400-840q0-33 23.5-56.5T480-920q33 0 56.5 23.5T560-840q0 33-23.5 56.5T480-760Z"
+              />
+            </svg>
+          </div>
+        </div>
+        <button type="submit" class="btn" [disabled]="!brokerForm.valid">
+          {{ "SUBMIT" | translate }}
+        </button>
+      </form>
+    </div>
+
+    <div class="toggle-box">
+      <div class="banner">
+        <div class="product">
+          <div
+            class="juice"
+          ></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

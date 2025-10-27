@@ -1,0 +1,17 @@
+<div class="modal-backdrop" *ngIf="visible">
+  <div class="modal">
+    <h2>{{ "ASSIGN_TRAILER" | translate }}</h2>
+    <form (ngSubmit)="onSubmit()">
+      <label for="trailerNumber">Trailer Number:</label>
+      <input
+        id="trailerNumber"
+        [(ngModel)]="trailerNumber"
+        name="trailerNumber"
+        required
+      />
+      <div class="modal-actions">
+        <button type="submit">{{ "SUBMIT" | translate }}</button>
+      </div>
+    </form>
+  </div>
+</div>

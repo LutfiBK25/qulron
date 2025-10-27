@@ -1,0 +1,172 @@
+<div class="comp-container">
+  <div class="container" [ngClass]="{ map: mapMode, data: dataMode }">
+    <div class="data-box data">
+      <section>
+        <h1>Welcome, {{ driverData.driverName }}</h1>
+        <div class="detail-container">
+          <button
+            *ngIf="!driverArrived"
+            class="arrival-btn"
+            (click)="handleDriverArrivalConfirmation()"
+          >
+            {{ "CLICK_HERE_TO_CONFIRM_ARRIVAL" | translate }}
+          </button>
+          <div *ngIf="driverArrived" class="detail-box task">
+            <span
+              *ngIf="
+                driverData.currentDestinationLocation &&
+                driverData.currentDestinationArea
+              "
+            >
+              Go To: {{ driverData.currentDestinationArea }}
+              {{ driverData.currentDestinationLocation }}
+            </span>
+            <span
+              *ngIf="
+                !driverData.currentDestinationLocation ||
+                !driverData.currentDestinationArea
+              "
+            >
+              {{ "WAITING_FOR_YARD_MANAGER_TO_UPDATE_DESTINATION" | translate }}
+            </span>
+          </div>
+          <!-- <div class="detail-box">
+            <strong>Phone:</strong> {{ driverData.phoneNumber }}
+          </div> -->
+          <div class="detail-box">
+            <strong>{{ "BROKER_LABEL" | translate }}: </strong>
+            {{ driverData.brokerName }}
+          </div>
+          <div class="detail-box">
+            <strong>{{ "ORDER_NUMBER_LABEL" | translate }}: </strong>
+            {{ driverData.orderNumbers }}
+          </div>
+          <!-- <div class="detail-box">
+            <strong>{{ "DESTINATION_WAREHOUSE_LABEL" | translate }}: </strong>
+            {{ driverData.destinationWarehouse }}
+          </div>
+          <div class="detail-box">
+            <strong>{{ "WAREHOUSE_ADDRESS_LABEL" | translate }}: </strong>
+            {{ driverData.warehouseAddress }}
+          </div> -->
+          <div class="detail-box">
+            <strong>{{ "CUSTOMER_NAME_LABEL" | translate }}: </strong>
+            {{ driverData.customerName }}
+          </div>
+          <div class="detail-box">
+            <strong>{{ "CUSTOMER_ADDRESS_LABEL" | translate }}: </strong>
+            {{ driverData.customerAddress }}
+          </div>
+          <div class="detail-box">
+            <strong>{{ "POTENTIAL_WEIGHT_LABEL" | translate }}: </strong>
+            {{ driverData.potentialWeight }} LB
+          </div>
+          <div class="detail-box">
+            <strong>{{ "TRAILER_NUMBER_LABEL" | translate }}: </strong>
+            {{ driverData.trailerNumber }}
+          </div>
+        </div>
+        <div class="btn-container">
+          <button class="logout-btn" (click)="logout()">
+            <div class="logout-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#333"
+              >
+                <path
+                  d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z"
+                />
+              </svg>
+            </div>
+            <div class="text">{{ "LOGOUT" | translate }}</div>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <div class="data-box map">
+      <section>
+        <div class="detail-container">
+          <button
+            *ngIf="!driverArrived"
+            class="arrival-btn"
+            (click)="handleDriverArrivalConfirmation()"
+          >
+            {{ "CLICK_HERE_TO_CONFIRM_ARRIVAL" | translate }}
+          </button>
+          <div *ngIf="driverArrived" class="detail-box task">
+            <span
+              *ngIf="
+                driverData.currentDestinationLocation &&
+                driverData.currentDestinationArea
+              "
+            >
+              Go To: {{ driverData.currentDestinationArea }}
+              {{ driverData.currentDestinationLocation }}
+            </span>
+            <span
+              *ngIf="
+                !driverData.currentDestinationLocation ||
+                !driverData.currentDestinationArea
+              "
+            >
+              {{ "WAITING_FOR_YARD_MANAGER_TO_UPDATE_DESTINATION" | translate }}
+            </span>
+          </div>
+          <!-- Distance and ETA -->
+          <div
+            class="detail-box distance-info"
+            *ngIf="
+              distanceToDestination > 0 && isLocationTracking && !locationError
+            "
+          >
+            <strong>{{ "DISTANCE_TO_DESTINATION" | translate }}: </strong>
+            {{ distanceToDestination }} mi
+          </div>
+        </div>
+
+        <div class="detail-box location-error" *ngIf="locationError">
+          <div class="status-indicator error"></div>
+          <strong>⚠️ {{ "LOCATION_ERROR" | translate }}: </strong>
+          {{ locationError }}
+        </div>
+
+        <div
+          class="detail-box location-offline"
+          *ngIf="!isLocationTracking && !locationError"
+        >
+          <div class="status-indicator offline"></div>
+          <strong>{{ "LOCATION_OFFLINE" | translate }}</strong>
+        </div>
+        <app-custom-facility-map
+          *ngIf="mapMode"
+          [driverData]="driverData"
+          [realDriverLocation]="driverLocation"
+          (routeDataUpdated)="handleRouteDataUpdate($event)"
+        ></app-custom-facility-map>
+      </section>
+    </div>
+
+    <div class="toggle-box">
+      <div class="toggle-panel toggle-left">
+        <h1>{{ "CLICK_SWITCH_FOR_MAP_DIRECTIONS" | translate }}</h1>
+        <button (click)="activateMapView()" class="btn map-btn">
+          {{ "SWITCH" | translate }}
+        </button>
+      </div>
+      <div class="toggle-panel toggle-right">
+        <h1>{{ "NEED_ORDER_DETAILS" | translate }}</h1>
+        <button (click)="activateDataView()" class="btn data-btn">
+          {{ "SWITCH" | translate }}
+        </button>
+      </div>
+    </div>
+    <app-create-order-trailer
+      [visible]="showTrailerPopup"
+      (close)="handleTrailerPopupClose()"
+    ></app-create-order-trailer>
+  </div>
+</div>

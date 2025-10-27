@@ -1,0 +1,17 @@
+<div class="facility-map-container">
+  <!-- Map Container -->
+  <div #mapContainer class="map-container"></div>
+
+  <!-- Zoom Controls -->
+  <div class="map-controls">
+    <button (click)="zoomIn()" class="zoom-btn" title="Zoom In">+</button>
+    <button (click)="zoomOut()" class="zoom-btn" title="Zoom Out">-</button>
+    <button (click)="resetToDriver()" class="zoom-btn" title="Reset View">
+      ⛟
+    </button>
+    <button (click)="resetToFacility()" class="zoom-btn" title="Reset View">
+      🏢
+    </button>
+  </div>
+  <div class="custom-attribution">© OpenStreetMap contributors</div>
+</div>

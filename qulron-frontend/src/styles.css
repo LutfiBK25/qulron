@@ -1,0 +1,25 @@
+/* You can add global styles to this file, and also import other style files */
+:root {
+  --primary-color: #00c4b3;
+  --secondary-color: #fc7ab0;
+  --third-color: #f5e814;
+  --text-color: #211f1f;
+  --menu-color: #fbfaf4;
+  --popup-color: #f8f6d7;
+}
+* {
+  font-family: "Roboto", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #211f1f;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  background: linear-gradient(90deg, #e2e2e2, #f8f6d7);
+}

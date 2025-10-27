@@ -1,0 +1,12 @@
+version: '3.9'
+
+services:
+  qulron-yms-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: qulron-frontend:1.0.0
+    container_name: qulron-frontend
+    restart: always
+    ports:
+      - "8080:80"
