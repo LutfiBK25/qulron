@@ -8,6 +8,9 @@ services:
     ports:
       - "30060:30060"
     env_file: .env
-    mem_limit: 1.5g       # Limit memory to 1.5 GB
+    deploy:
+      resources:
+        limits:
+          memory: 1500M      # Limit memory to 1.5 GB
     volumes:
-      - ./logs:/app/logs  # Persist Spring Boot logs to host VM
+      - ./logs:/app/logs  # Persist logs to host VM
