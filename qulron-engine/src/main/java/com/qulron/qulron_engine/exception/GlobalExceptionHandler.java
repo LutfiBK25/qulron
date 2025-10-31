@@ -71,7 +71,7 @@ public class GlobalExceptionHandler {
         log.warn("Order not Found Exception: {}", ex.getMessage());
 
         Map<String,Object> response = new HashMap<>();
-        response.put("statusCode", 400);
+        response.put("statusCode", 404);
         response.put("message", "Order was not found");
         response.put("error", ex.getMessage());
 

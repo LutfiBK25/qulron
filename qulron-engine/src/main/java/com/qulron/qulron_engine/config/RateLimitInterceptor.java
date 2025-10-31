@@ -2,6 +2,10 @@ package com.qulron.qulron_engine.config;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
+import io.github.bucket4j.BucketConfiguration;
+import io.github.bucket4j.TokensInheritanceStrategy;
+import io.github.bucket4j.distributed.ExpirationAfterWriteStrategy;
+import io.github.bucket4j.distributed.proxy.ProxyManager;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,6 +36,9 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     private int strictRequestsPerTimeIntervalPerIp;
     @Value("${rate.limit.strict-time-interval-minutes}")
     private int timeIntervalMinutes;
+    // Cleaning the bucket used for ip
+    @Value("${rate.limit.bucket-cleanup-minutes:120}")
+    private int bucketCleanupMinutes;
     // Global rate limiting (Tier 1) - will be initialized in @PostConstruct
     private Bucket globalBucket;
 
@@ -39,12 +46,10 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     @PostConstruct
     public void init() {
         // Create global bucket AFTER properties are injected
-        globalBucket = Bucket.builder()
-                .addLimit(Bandwidth.builder()
-                        .capacity(requestsPerMinuteGlobal)
-                        .refillGreedy(requestsPerMinuteGlobal, Duration.ofMinutes(1))
-                        .build())
-                .build();
+        globalBucket = createBucket(requestsPerMinuteGlobal, Duration.ofMinutes(1));
+
+        // Get Back to This ToDo
+        // startBucketCleanupTask();
     }
 
     // Rate limits Handler
@@ -56,20 +61,14 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
         // Tier 1: Check global rate limit first
         if (!globalBucket.tryConsume(1)) {
-            logger.warn("GLOBAL rate limit exceeded for {} {} from IP: {}",
-                    request.getMethod(), path, clientIP);
-            response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-            response.getWriter().write("Server is experiencing high load. Please try again later.");
+            handleRateLimitExceeded(response, "GLOBAL", request.getMethod(), path, clientIP,"Server is experiencing high load. Please try again later." );
             return false;
         }
 
         // Tier 2: Check per-IP rate limit
         Bucket ipBucket = getIPBucket(clientIP, request);
         if (!ipBucket.tryConsume(1)) {
-            logger.warn("IP rate limit exceeded for {} {} from IP: {}",
-                    request.getMethod(), path, clientIP);
-            response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-            response.getWriter().write("Rate limit exceeded for your IP: " + clientIP + ". Please try again later.");
+            handleRateLimitExceeded(response,"IP", request.getMethod(), path, clientIP, "Rate limit exceeded for your IP: " + clientIP + ". Please try again later.");
             return false;
         }
 
@@ -82,26 +81,45 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         boolean isStrictEndpoint = shouldUseStrictBucket(request);
         String bucketKey = clientIP + (isStrictEndpoint ? "_strict" : "_normal");
 
-        return ipBuckets.computeIfAbsent(bucketKey, k -> {
-            if (isStrictEndpoint) {
-                // Strict endpoints: 15 requests per HOUR
-                return Bucket.builder()
-                        .addLimit(Bandwidth.builder()
-                                .capacity(strictRequestsPerTimeIntervalPerIp)
-                                .refillGreedy(strictRequestsPerTimeIntervalPerIp,
-                                        Duration.ofMinutes(timeIntervalMinutes))
-                                .build())
-                        .build();
-            } else {
-                // Normal endpoints: 100 requests per MINUTE
-                return Bucket.builder()
-                        .addLimit(Bandwidth.builder()
-                                .capacity(requestsPerMinutePerIp)
-                                .refillGreedy(requestsPerMinutePerIp, Duration.ofMinutes(1))
-                                .build())
-                        .build();
+        // Double-checking locking pattern to ensure thread-safe bucket creation
+        Bucket existingBucket = ipBuckets.get(bucketKey);
+        if (existingBucket != null){
+            return existingBucket;
+        }
+
+        synchronized (this){
+            // Check again that bucket doesn't exist in sync block
+            existingBucket = ipBuckets.get(bucketKey);
+            if (existingBucket != null){
+                return existingBucket;
             }
-        });
+
+            // Create a new ip bucket
+            Bucket newBucket;
+            if(isStrictEndpoint) {
+                newBucket = createBucket(strictRequestsPerTimeIntervalPerIp, Duration.ofMinutes(timeIntervalMinutes));
+            } else {
+                newBucket = createBucket(requestsPerMinutePerIp, Duration.ofMinutes(1));
+            }
+            ipBuckets.put(bucketKey,newBucket);
+            return newBucket;
+        }
+    }
+
+    private Bucket createBucket(int capacity, Duration duration) {
+        return Bucket.builder()
+                .addLimit(Bandwidth.builder()
+                        .capacity(capacity)
+                        .refillGreedy(capacity, duration)
+                        .build())
+                .build();
+    }
+
+    private void handleRateLimitExceeded(HttpServletResponse response, String limitType, String requestMethod, String path, String clientIP, String message) throws Exception{
+        logger.warn("{} rate limit exceeded for {} {} from IP: {}",
+                limitType ,response, path, clientIP);
+        response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+        response.getWriter().write(message);
     }
 
     // TODO: Add more endpoints to the list and remove the ones that are not
