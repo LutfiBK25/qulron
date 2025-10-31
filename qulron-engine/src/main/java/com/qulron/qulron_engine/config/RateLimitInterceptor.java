@@ -2,10 +2,6 @@ package com.qulron.qulron_engine.config;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.BucketConfiguration;
-import io.github.bucket4j.TokensInheritanceStrategy;
-import io.github.bucket4j.distributed.ExpirationAfterWriteStrategy;
-import io.github.bucket4j.distributed.proxy.ProxyManager;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,13 +15,28 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class RateLimitInterceptor implements HandlerInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(RateLimitInterceptor.class);
+
+    private static class BucketInfo{
+        final Bucket bucket;
+        final long createdAt;
+
+        BucketInfo(Bucket bucket){
+            this.bucket = bucket;
+            this.createdAt = System.currentTimeMillis();
+        }
+    }
+    // Global rate limiting (Tier 1) - will be initialized in @PostConstruct
+    private Bucket globalBucket;
     // Per-IP rate limiting (Tier 2)
-    private final Map<String, Bucket> ipBuckets = new ConcurrentHashMap<>();
+    private final Map<String, BucketInfo> ipBuckets = new ConcurrentHashMap<>();
+
+    /// Configurations
     // Global rate limits
     @Value("${rate.limit.requests-per-minute-global}")
     private int requestsPerMinuteGlobal;
@@ -39,8 +50,9 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     // Cleaning the bucket used for ip
     @Value("${rate.limit.bucket-cleanup-minutes:120}")
     private int bucketCleanupMinutes;
-    // Global rate limiting (Tier 1) - will be initialized in @PostConstruct
-    private Bucket globalBucket;
+    @Value("${rate.limit.bucket-max-age-minutes:1440}") // 24 hours default
+    private int bucketMaxAgeMinutes;
+
 
     // Initialize the global bucket
     @PostConstruct
@@ -48,8 +60,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         // Create global bucket AFTER properties are injected
         globalBucket = createBucket(requestsPerMinuteGlobal, Duration.ofMinutes(1));
 
-        // Get Back to This ToDo
-        // startBucketCleanupTask();
+        // Get Back to This
+        startBucketCleanupTask();
     }
 
     // Rate limits Handler
@@ -82,16 +94,16 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         String bucketKey = clientIP + (isStrictEndpoint ? "_strict" : "_normal");
 
         // Double-checking locking pattern to ensure thread-safe bucket creation
-        Bucket existingBucket = ipBuckets.get(bucketKey);
+        BucketInfo existingBucket = ipBuckets.get(bucketKey);
         if (existingBucket != null){
-            return existingBucket;
+            return existingBucket.bucket;
         }
 
         synchronized (this){
             // Check again that bucket doesn't exist in sync block
             existingBucket = ipBuckets.get(bucketKey);
             if (existingBucket != null){
-                return existingBucket;
+                return existingBucket.bucket;
             }
 
             // Create a new ip bucket
@@ -101,7 +113,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
             } else {
                 newBucket = createBucket(requestsPerMinutePerIp, Duration.ofMinutes(1));
             }
-            ipBuckets.put(bucketKey,newBucket);
+            BucketInfo newBucketInfo = new BucketInfo(newBucket);
+            ipBuckets.put(bucketKey,newBucketInfo);
             return newBucket;
         }
     }
@@ -117,9 +130,56 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
     private void handleRateLimitExceeded(HttpServletResponse response, String limitType, String requestMethod, String path, String clientIP, String message) throws Exception{
         logger.warn("{} rate limit exceeded for {} {} from IP: {}",
-                limitType ,response, path, clientIP);
+                limitType ,requestMethod, path, clientIP);
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+        response.setContentType("text/plain");
         response.getWriter().write(message);
+    }
+
+    private void startBucketCleanupTask(){
+        Thread cleanupThread = new Thread(() -> {
+            while (!Thread.currentThread().isInterrupted()){
+                try{
+                    Thread.sleep(Duration.ofMinutes(bucketCleanupMinutes).toMillis());
+                    cleanUpOldBuckets();
+
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        });
+        cleanupThread.setDaemon(true);
+        cleanupThread.setName("rate-limiting-cleanup");
+        cleanupThread.start();
+    }
+
+    private void cleanUpOldBuckets() {
+        int initialSize = ipBuckets.size();
+        if (initialSize == 0){
+            return;
+        }
+
+        long maxAgeMillis = Duration.ofMinutes(bucketMaxAgeMinutes).toMillis();
+        long currentTime = System.currentTimeMillis();
+        AtomicInteger removedCount = new AtomicInteger(0); //this is an overkill since it is a single thread, but it is what it is
+
+        // Remove buckets older than max age
+        ipBuckets.entrySet().removeIf(entry -> {
+            long bucketAge = currentTime - entry.getValue().createdAt;
+            if (bucketAge > maxAgeMillis) {
+                logger.debug("Removing old bucket for IP: {}",
+                        entry.getKey().replace("_strict", "").replace("_normal", ""));
+                removedCount.incrementAndGet();
+                return true;
+            }
+            return false;
+        });
+
+        if (removedCount.get() > 0) {
+            logger.info("Bucket cleanup: removed {} old buckets, {} remaining",
+                    removedCount.get(), ipBuckets.size());
+        }
     }
 
     // TODO: Add more endpoints to the list and remove the ones that are not
