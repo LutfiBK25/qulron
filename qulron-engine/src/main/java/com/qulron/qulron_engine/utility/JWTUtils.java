@@ -1,6 +1,7 @@
 package com.qulron.qulron_engine.utility;
 
 import com.qulron.qulron_engine.enums.Role;
+import com.qulron.qulron_engine.exception.JwtAuthenticationException;
 import io.jsonwebtoken.*;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -24,20 +25,26 @@ import java.util.function.Function;
 @Component
 public class JWTUtils {
     private static final int MAX_BLACKLIST_SIZE = 10000;
-    @Value("${jwt.expiration:21600000}")
-    private final long EXPIRATION_TIME = 21600000;
-    @Value("${jwt.refresh-expiration:604800000}")
-    private final long REFRESH_EXPIRATION_TIME = 604800000;
-    @Value("${jwt.blacklist-cleanup-interval:3600000}")
-    private final long BLACKLIST_CLEANUP_INTERVAL = 3600000;
-    @Value("${jwt.blacklist-token-lifetime:86400000}")
-    private final long BLACKLIST_TOKEN_LIFETIME = 86400000;
+    private final long EXPIRATION_TIME;
+    private final long REFRESH_EXPIRATION_TIME;
+    private final long BLACKLIST_CLEANUP_INTERVAL;
+    private final long BLACKLIST_TOKEN_LIFETIME;
     // Store token with timestamp
     private final Map<String, Long> blacklistedTokens = new ConcurrentHashMap<>();
     private SecretKey key;
     @Value("${jwt.secret}")
     private String secretString;
     private ScheduledExecutorService scheduler;
+
+    public JWTUtils(@Value("${jwt.expiration:21600000}") long expirationTime,
+                    @Value("${jwt.refresh-expiration:604800000}") long refreshExpirationTime,
+                    @Value("${jwt.blacklist-cleanup-interval:3600000}") long blacklistCleanupInterval,
+                    @Value("${jwt.blacklist-token-lifetime:86400000}") long blacklistTokenLifetime) {
+        EXPIRATION_TIME = expirationTime;
+        REFRESH_EXPIRATION_TIME = refreshExpirationTime;
+        BLACKLIST_CLEANUP_INTERVAL = blacklistCleanupInterval;
+        BLACKLIST_TOKEN_LIFETIME = blacklistTokenLifetime;
+    }
 
     @PostConstruct
     public void init() {
@@ -214,9 +221,3 @@ public class JWTUtils {
     }
 }
 
-// Custom exception for clarity
-class JwtAuthenticationException extends RuntimeException {
-    public JwtAuthenticationException(String message, Throwable cause) {
-        super(message, cause);
-    }
-}

@@ -14,3 +14,8 @@ services:
           memory: 1500M      # Limit memory to 1.5 GB
     volumes:
       - ./logs:/app/logs  # Persist logs to host VM
+    logging: # this is docker logging our main logs are coming from the app itself
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"

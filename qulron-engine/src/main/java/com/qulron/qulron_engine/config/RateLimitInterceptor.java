@@ -38,21 +38,29 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
     /// Configurations
     // Global rate limits
-    @Value("${rate.limit.requests-per-minute-global}")
-    private int requestsPerMinuteGlobal;
+    private final int requestsPerMinuteGlobal;
     // Rate limits per IP
-    @Value("${rate.limit.requests-per-minute-per-ip}")
-    private int requestsPerMinutePerIp;
-    @Value("${rate.limit.strict-requests-per-time-interval-per-ip}")
-    private int strictRequestsPerTimeIntervalPerIp;
-    @Value("${rate.limit.strict-time-interval-minutes}")
-    private int timeIntervalMinutes;
+    private final int requestsPerMinutePerIp;
+    private final int strictRequestsPerTimeIntervalPerIp;
+    private final int timeIntervalMinutes;
     // Cleaning the bucket used for ip
-    @Value("${rate.limit.bucket-cleanup-minutes:120}")
-    private int bucketCleanupMinutes;
-    @Value("${rate.limit.bucket-max-age-minutes:1440}") // 24 hours default
-    private int bucketMaxAgeMinutes;
+    private final int bucketCleanupMinutes;
+    private final int bucketMaxAgeMinutes;
 
+
+    public RateLimitInterceptor(@Value("${rate.limit.requests-per-minute-global}") int requestsPerMinuteGlobal,
+                                @Value("${rate.limit.requests-per-minute-per-ip}") int requestsPerMinutePerIp,
+                                @Value("${rate.limit.strict-requests-per-time-interval-per-ip}") int strictRequestsPerTimeIntervalPerIp,
+                                @Value("${rate.limit.strict-time-interval-minutes}") int timeIntervalMinutes,
+                                @Value("${rate.limit.bucket-cleanup-minutes}") int bucketCleanupMinutes,
+                                @Value("${rate.limit.bucket-max-age-minutes}") int bucketMaxAgeMinutes) {
+        this.requestsPerMinuteGlobal = requestsPerMinuteGlobal;
+        this.requestsPerMinutePerIp = requestsPerMinutePerIp;
+        this.strictRequestsPerTimeIntervalPerIp = strictRequestsPerTimeIntervalPerIp;
+        this.timeIntervalMinutes = timeIntervalMinutes;
+        this.bucketCleanupMinutes = bucketCleanupMinutes;
+        this.bucketMaxAgeMinutes = bucketMaxAgeMinutes;
+    }
 
     // Initialize the global bucket
     @PostConstruct
