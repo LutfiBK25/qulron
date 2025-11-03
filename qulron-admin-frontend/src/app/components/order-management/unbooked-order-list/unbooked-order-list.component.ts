@@ -237,7 +237,7 @@ export class UnbookedOrderListComponent {
         next: (response) => {
           if (response.statusCode == 200) {
             console.log(response);
-            this.orders = response.orders;
+            this.orders = response.unbookedOrderInfoList;
             if (this.orders) {
               this.filteredTableData = this.orders;
             } else {

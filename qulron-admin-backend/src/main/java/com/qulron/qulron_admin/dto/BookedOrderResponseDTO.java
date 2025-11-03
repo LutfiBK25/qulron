@@ -19,7 +19,7 @@ public class BookedOrderResponseDTO {
     private String error;
     private String message;
     private String messageCode;
-    private List<CurrentOrderInfo> orders;
+    private List<CurrentOrderInfo> bookedOrders;
 
     @Getter
     @Setter

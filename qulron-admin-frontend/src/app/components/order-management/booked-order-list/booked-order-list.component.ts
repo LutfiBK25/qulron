@@ -244,7 +244,7 @@ export class BookedOrderListComponent {
         next: (response) => {
           if (response.statusCode == 200) {
             console.log(response);
-            this.orders = response.orders;
+            this.orders = response.bookedOrders;
             if (this.orders){
               this.filteredTableData = this.orders;
             } else {
