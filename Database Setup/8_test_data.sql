@@ -20,7 +20,7 @@ INSERT INTO public.t_wms_sst_rcv_tab(
 	dest_country_code, appointment_datetime,potential_weight, broker_name, record_create_id,
 	record_create_date)
 	VALUES ( 'ADD01', 'WMS', 'YMS', '00', 'Keasby Warehouse', 'AB31',
-	'One Arizona Way KEASBEY NJ 08832', 'TEST300001', 'TEST9383543',
+	'One Arizona Way KEASBEY NJ 08832', 'TEST300002', 'TEST93835401',
 	'Costco Co.','400 Washington Ave','Hackensack', 'NJ','07601','USA',
 	NOW(), 55400.47, 'abc broker', 'WMS', NOW());
 
@@ -31,7 +31,7 @@ INSERT INTO public.t_wms_sst_rcv_tab(
 	dest_country_code, appointment_datetime,potential_weight, broker_name, record_create_id,
 	record_create_date)
 	VALUES ( 'ADD01', 'WMS', 'YMS', '00', 'Keasby Warehouse', 'AB31',
-	'One Arizona Way KEASBEY NJ 08832', 'TEST300001', 'TEST9383542',
+	'One Arizona Way KEASBEY NJ 08832', 'TEST300002', 'TEST9383500',
 	'Costco Co.','400 Washington Ave','Hackensack', 'NJ','07601','USA',
 	NOW(), 55400.47, 'abc broker', 'WMS', NOW());
 

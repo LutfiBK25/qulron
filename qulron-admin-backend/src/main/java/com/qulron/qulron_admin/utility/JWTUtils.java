@@ -4,6 +4,7 @@ package com.qulron.qulron_admin.utility;
 import com.qulron.qulron_admin.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -46,6 +47,11 @@ public class JWTUtils {
                 .expiration(new Date(System.currentTimeMillis() + REFRESH_EXPIRATION_TIME))
                 .signWith(key)
                 .compact();
+    }
+
+    public String extractToken(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        return (token != null && token.startsWith("Bearer ")) ? token.substring(7) : null;
     }
 
     public String extractUsername(String token) {

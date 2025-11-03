@@ -1,15 +1,14 @@
 package com.qulron.qulron_admin.service;
 
-import com.qulron.qulron_admin.dto.LoadDTO;
-import com.qulron.qulron_admin.dto.OpenOrderDTO;
-import com.qulron.qulron_admin.dto.OrderDTO;
+import com.qulron.qulron_admin.dto.ActiveLoadResponseDTO;
+import com.qulron.qulron_admin.dto.UnBookedOrderResponseDTO;
+import com.qulron.qulron_admin.dto.BookedOrderResponseDTO;
 import com.qulron.qulron_admin.entity.*;
 import com.qulron.qulron_admin.enums.Status;
 import com.qulron.qulron_admin.repository.*;
 import com.qulron.qulron_admin.utility.JWTUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -39,8 +38,8 @@ public class OrderService {
         this.loadDetailRepo = loadDetailRepo;
     }
 
-    public OpenOrderDTO getUnBookedOrders() {
-        OpenOrderDTO response = new OpenOrderDTO();
+    public UnBookedOrderResponseDTO getUnBookedOrders(HttpServletRequest request) {
+        UnBookedOrderResponseDTO response = new UnBookedOrderResponseDTO();
         try {
             // Get all loads with CREATED status ordered by appointment date
             List<OpenLoad> openLoads = openLoadRepo.findByLoadStatus(Status.CREATED);
@@ -60,7 +59,7 @@ public class OrderService {
             Map<String, OpenOrder> orderMap = openOrders.stream()
                     .collect(Collectors.toMap(OpenOrder::getOrderNumber, order -> order));
 
-            List<OpenOrderDTO.UnbookedOrderInfo> unbookedOrders = new ArrayList<>();
+            List<UnBookedOrderResponseDTO.UnbookedOrderInfo> unbookedOrders = new ArrayList<>();
 
             // Now map each OpenLoadDetail to OpenOrder to OpenLoad
             for (OpenLoadDetail loadDetail : openLoadDetails) {
@@ -68,8 +67,8 @@ public class OrderService {
                 OpenLoad openLoad = loadMap.get(loadDetail.getLoadId());
 
                 if (openOrder != null && openLoad != null) {
-                    OpenOrderDTO.UnbookedOrderInfo orderInfo = new OpenOrderDTO.UnbookedOrderInfo();
-                    orderInfo.setOrderNumber(openOrder.getOrderNumber());
+                    UnBookedOrderResponseDTO.UnbookedOrderInfo orderInfo = new UnBookedOrderResponseDTO.UnbookedOrderInfo();
+                    orderInfo.setOrderNumbers(openOrder.getOrderNumber());
                     orderInfo.setLoadId(openLoad.getLoadId());
                     orderInfo.setWarehouse(openOrder.getWarehouse());
                     orderInfo.setWarehouseCode(openOrder.getWarehouse_code());
@@ -82,14 +81,12 @@ public class OrderService {
             }
 
             // Sort the final result by appointment date to preserve backend sorting
-            unbookedOrders.sort(Comparator.comparing(OpenOrderDTO.UnbookedOrderInfo::getAppointmentDateTime));
+            unbookedOrders.sort(Comparator.comparing(UnBookedOrderResponseDTO.UnbookedOrderInfo::getAppointmentDateTime));
 
             response.setOrders(unbookedOrders);
             log.info("Unbooked orders retrieved successfully");
             response.setStatusCode(200);
             response.setMessage("Unbooked orders retrieved successfully");
-
-
         } catch (Exception e) {
             response.setStatusCode(500);
             response.setMessage("Internal Server Error " + e.getMessage());
@@ -97,15 +94,16 @@ public class OrderService {
         return response;
     }
 
-    public OrderDTO getBookedOrders() {
-        OrderDTO response = new OrderDTO();
+    public BookedOrderResponseDTO getBookedOrders(HttpServletRequest request) {
+        BookedOrderResponseDTO response = new BookedOrderResponseDTO();
         try {
+            log.info("Request for all booked orders");
             // Get all loads with CREATED, ACTIVATED, STARTED statuses
             List<LoadMaster> loadMasters = loadMasterRepo.findByLoadStatusIn(
                     List.of(Status.CREATED, Status.ACTIVATED, Status.STARTED));
 
             if (loadMasters.isEmpty()) {
-                log.info("Request for booked orders : There is no booked orders");
+                log.info("There is no booked orders");
                 response.setStatusCode(200);
                 response.setMessage("No Booked Orders Found");
                 return response;
@@ -122,7 +120,7 @@ public class OrderService {
             Map<String, Order> orderMap = orders.stream()
                     .collect(Collectors.toMap(Order::getOrderNumber, order -> order));
 
-            List<OrderDTO.CurrentOrderInfo> bookedOrders = new ArrayList<>();
+            List<BookedOrderResponseDTO.CurrentOrderInfo> bookedOrders = new ArrayList<>();
 
             // Now map each LoadDetail to Order to LoadMaster
             for (LoadDetail loadDetail : loadDetails) {
@@ -130,9 +128,9 @@ public class OrderService {
                 LoadMaster loadMaster = loadMap.get(loadDetail.getLoadId());
 
                 if (order != null && loadMaster != null) {
-                    OrderDTO.CurrentOrderInfo orderInfo = new OrderDTO.CurrentOrderInfo();
+                    BookedOrderResponseDTO.CurrentOrderInfo orderInfo = new BookedOrderResponseDTO.CurrentOrderInfo();
                     orderInfo.setId(order.getId());
-                    orderInfo.setOrderNumber(order.getOrderNumber());
+                    orderInfo.setOrderNumbers(order.getOrderNumber());
                     orderInfo.setLoadId(loadDetail.getLoadId());
                     orderInfo.setWarehouse(order.getWarehouse());
                     orderInfo.setWarehouseCode(order.getWarehouse_code());
@@ -154,6 +152,8 @@ public class OrderService {
             response.setOrders(bookedOrders);
             response.setStatusCode(200);
             response.setMessage("Booked orders retrieved successfully");
+            log.info("Booked orders retrieved successfully");
+
 
         } catch (Exception e) {
             log.warn("Internal Server Error {}", e.getMessage());
@@ -163,15 +163,16 @@ public class OrderService {
         return response;
     }
 
-    public OrderDTO clearOrderSubmission(HttpServletRequest request, Long Id) {
-        OrderDTO response = new OrderDTO();
+    public BookedOrderResponseDTO clearOrderSubmission(HttpServletRequest request, Long Id) {
+        BookedOrderResponseDTO response = new BookedOrderResponseDTO();
         try {
-            String token = extractToken(request);
+            String token = jwtUtils.extractToken(request);
             if (token == null) {
                 response.setStatusCode(401);
                 response.setMessage("Authorization token is missing or invalid");
                 return response;
             }
+
             String username = jwtUtils.extractUsername(token);
 
             Optional<Order> order = orderRepo.findById(Id);
@@ -183,7 +184,7 @@ public class OrderService {
                     List<LoadDetail> loadDetails = loadDetailRepo.findByOrderNumber(foundOrder.getOrderNumber());
 
                     if (!loadDetails.isEmpty()) {
-                        LoadDetail loadDetail = loadDetails.get(0);
+                        LoadDetail loadDetail = loadDetails.getFirst();
                         String loadId = loadDetail.getLoadId();
 
                         // Find all orders for this load
@@ -267,15 +268,16 @@ public class OrderService {
         return response;
     }
 
-    public LoadDTO getActiveLoads(HttpServletRequest request) {
-        LoadDTO response = new LoadDTO();
+    public ActiveLoadResponseDTO getActiveLoads(HttpServletRequest request) {
+        ActiveLoadResponseDTO response = new ActiveLoadResponseDTO();
         try {
+            log.info("Request for all active orders");
             // Get all loads with CREATED, ACTIVATED, STARTED statuses
             List<LoadMaster> loadMasters = loadMasterRepo.findByLoadStatusIn(
                     List.of(Status.CREATED, Status.ACTIVATED, Status.STARTED));
 
-            if (!loadMasters.isEmpty()) {
-                log.info("Request for live orders : There is no unbooked orders");
+            if (loadMasters.isEmpty()) {
+                log.info("There is no active orders");
                 response.setStatusCode(200);
                 response.setMessage("There is currently no live orders");
                 return response;
@@ -295,7 +297,7 @@ public class OrderService {
             Map<String, Order> orderMap = orders.stream()
                     .collect(Collectors.toMap(Order::getOrderNumber, order -> order));
 
-            List<LoadDTO.ActiveLoadInfo> bookedLoads = new ArrayList<>();
+            List<ActiveLoadResponseDTO.ActiveLoadInfo> bookedLoads = new ArrayList<>();
 
             // Group load details by loadId to collect all order numbers for each load
             Map<String, List<LoadDetail>> loadDetailsMap = loadDetails.stream()
@@ -322,7 +324,7 @@ public class OrderService {
                             .collect(Collectors.toList());
 
                     if (!orderNumbersForLoad.isEmpty()) {
-                        LoadDTO.ActiveLoadInfo loadInfo = new LoadDTO.ActiveLoadInfo();
+                        ActiveLoadResponseDTO.ActiveLoadInfo loadInfo = new ActiveLoadResponseDTO.ActiveLoadInfo();
                         loadInfo.setLoadId(loadId);
                         loadInfo.setOrderNumbers(String.join(", ", orderNumbersForLoad));
                         loadInfo.setDriverName(loadMaster.getDriverName());
@@ -337,17 +339,14 @@ public class OrderService {
 
             response.setActiveLoadInfoList(bookedLoads);
             response.setStatusCode(200);
-            response.setMessage("Booked orders retrieved successfully");
+            response.setMessage("Live orders retrieved successfully");
+            log.info("Live orders retrieved successfully");
+
         } catch (Exception e) {
             response.setStatusCode(500);
             response.setMessage("Internal Server Error " + e.getMessage());
         }
         return response;
-    }
-
-    private String extractToken(HttpServletRequest request) {
-        String token = request.getHeader("Authorization");
-        return (token != null && token.startsWith("Bearer ")) ? token.substring(7) : null;
     }
 
 }

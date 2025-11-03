@@ -178,10 +178,17 @@ export class LiveOrderMapComponent {
           if (response.statusCode == 200) {
             console.log(response);
             this.activeLoads = response.activeLoadInfoList;
-            this.filteredTableData = this.activeLoads;
+            if(this.activeLoads){
+              this.filteredTableData = this.activeLoads;
+            } else {
+              this.popupService.show(
+              `No Active Orders`,
+              `There is currently no Active Orders`
+            );
+            }
           } else {
             this.popupService.show(
-              `Error0`,
+              `Error`,
               `Order Retrival Failed, Please try again`
             );
           }

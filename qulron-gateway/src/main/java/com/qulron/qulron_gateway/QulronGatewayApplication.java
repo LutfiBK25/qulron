@@ -12,6 +12,4 @@ public class QulronGatewayApplication {
 		SpringApplication.run(QulronGatewayApplication.class, args);
 	}
 
-
-
 }

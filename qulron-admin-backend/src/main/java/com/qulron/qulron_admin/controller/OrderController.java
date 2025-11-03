@@ -1,13 +1,12 @@
 package com.qulron.qulron_admin.controller;
 
-import com.qulron.qulron_admin.dto.LoadDTO;
-import com.qulron.qulron_admin.dto.OpenOrderDTO;
-import com.qulron.qulron_admin.dto.OrderDTO;
+import com.qulron.qulron_admin.dto.ActiveLoadResponseDTO;
+import com.qulron.qulron_admin.dto.UnBookedOrderResponseDTO;
+import com.qulron.qulron_admin.dto.BookedOrderResponseDTO;
 import com.qulron.qulron_admin.service.OrderService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,17 +25,17 @@ public class OrderController {
     }
 
     @GetMapping("/unbooked_orders")
-    public ResponseEntity<OpenOrderDTO> getUnBookedOrders() {
-        return ResponseEntity.ok(orderService.getUnBookedOrders());
+    public ResponseEntity<UnBookedOrderResponseDTO> getUnBookedOrders(HttpServletRequest request) {
+        return ResponseEntity.ok(orderService.getUnBookedOrders(request));
     }
 
     @GetMapping("/booked_orders")
-    public ResponseEntity<OrderDTO> getBookedOrders() {
-        return ResponseEntity.ok(orderService.getBookedOrders());
+    public ResponseEntity<BookedOrderResponseDTO> getBookedOrders(HttpServletRequest request) {
+        return ResponseEntity.ok(orderService.getBookedOrders(request));
     }
 
     @PutMapping("/cancel/{order_id}")
-    public ResponseEntity<OrderDTO> cancelOrder(@PathVariable Long order_id, HttpServletRequest request) {
+    public ResponseEntity<BookedOrderResponseDTO> cancelOrder(@PathVariable Long order_id, HttpServletRequest request) {
         return ResponseEntity.ok(orderService.clearOrderSubmission(request, order_id));
     }
 
@@ -44,12 +43,12 @@ public class OrderController {
      * Get all active orders with their latest driver locations
      */
     @GetMapping("/active-loads")
-    public ResponseEntity<LoadDTO> getActiveLoadsWithLocations(HttpServletRequest request) {
+    public ResponseEntity<ActiveLoadResponseDTO> getActiveLoadsWithLocations(HttpServletRequest request) {
 
         logger.info("Active orders with locations request received from IP: {}", getClientIpAddress(request));
 
         try {
-            LoadDTO response = orderService.getActiveLoads(request);
+            ActiveLoadResponseDTO response = orderService.getActiveLoads(request);
 
             // Log successful retrieval
             if (response.getStatusCode() == 200) {
@@ -66,7 +65,7 @@ public class OrderController {
             logger.error("Error retrieving active orders with locations - Error: {}", e.getMessage(), e);
 
             // Create error response
-            LoadDTO errorResponse = new LoadDTO();
+            ActiveLoadResponseDTO errorResponse = new ActiveLoadResponseDTO();
             errorResponse.setStatusCode(500);
             errorResponse.setMessage("Internal server error occurred while retrieving active orders");
 
