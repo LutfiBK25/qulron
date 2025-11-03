@@ -41,7 +41,7 @@ public class LoadMaster {
     @Column(name = "last_driver_longitude", precision = 16, scale = 13)
     private BigDecimal lastDriverLongitude;
 
-    @Column(name = "appointment_datetime", nullable = false)
+    @Column(name = "appointment_datetime")
     private LocalDateTime appointmentDateTime;
 
     @Column(name = "potential_weight")

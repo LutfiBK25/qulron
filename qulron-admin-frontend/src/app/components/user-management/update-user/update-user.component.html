@@ -1,0 +1,70 @@
+<div class="container">
+  <form class="data-box" (submit)="handleSubmit()" *ngIf="user">
+    <div class="field">
+      <label>Username: </label>
+      <input
+        type="text"
+        name="username"
+        placeholder="Username"
+        [(ngModel)]="user.username"
+        (blur)="user.username = user.username.trim()"
+        autocomplete="new-field-name"
+        required
+      />
+    </div>
+    <div class="select-field">
+      <label>Role: </label>
+      <select name="role" [(ngModel)]="user.role" required>
+        <option value="">Select Role</option>
+        <option value="ADMIN">ADMIN</option>
+        <option value="USER">USER</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>First Name:</label>
+      <input
+        type="text"
+        name="firstName"
+        placeholder="First Name"
+        [(ngModel)]="user.firstName"
+        autocomplete="new-field-name"
+        required
+      />
+    </div>
+    <div class="field">
+      <label>Last Name:</label>
+      <input
+        type="text"
+        name="lastName"
+        placeholder="Last Name"
+        [(ngModel)]="user.lastName"
+        autocomplete="new-field-name"
+        required
+      />
+    </div>
+    <div class="field">
+      <label>Email:</label>
+      <input
+        type="email"
+        name="email"
+        placeholder="Email"
+        [(ngModel)]="user.email"
+        (blur)="user.email = user.email.trim()"
+        autocomplete="new-field-name"
+        required
+      />
+    </div>
+    <div class="field">
+      <label>Phone:</label>
+      <input
+        type="tel"
+        name="phone"
+        placeholder="Phone Number"
+        [(ngModel)]="user.phone"
+        (blur)="user.phone = user.phone.trim()"
+        autocomplete="off"
+        required
+      />
+    </div>
+  </form>
+</div>

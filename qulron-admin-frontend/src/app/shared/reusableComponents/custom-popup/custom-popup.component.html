@@ -1,0 +1,10 @@
+<div class="popup-backdrop" [ngClass]="{ active: visible }">
+  <div class="popup-box" [ngClass]="{ active: visible }">
+    <h3>{{ title }}</h3>
+    <p>{{ message }}</p>
+    <div class="actions">
+      <button *ngIf="type === 'confirm'" (click)="confirm()">Confirm</button>
+      <button (click)="close()">Close</button>
+    </div>
+  </div>
+</div>

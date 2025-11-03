@@ -1,0 +1,52 @@
+nav {
+  background-color: #1d1d2c;
+  border-bottom: 1px solid var(--hover-color);
+  color: var(--text-color);
+  box-shadow: 0 3px 3px rgba(255, 255, 255, 0.5); /* Bigger and more obvious */
+  z-index: 10; /* ensure it's above content */
+  position: relative; /* required if overlapping other elements */
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  padding: 0;
+  margin: 0;
+}
+
+nav .home-li {
+  margin-right: auto;
+}
+
+nav li {
+  display: flex;
+}
+
+.btn {
+  display: flex;
+  text-decoration: none;
+  color: var(--text-color);
+  padding: 1em 2em;
+  transition: background-color 150ms ease, border-bottom 150ms ease;
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+nav .btn:hover {
+  background-color: var(--hover-color);
+}
+
+nav .btn.active-link {
+  border-bottom: 2px solid var(--text-color);
+}
+
+nav .btn.accent-link {
+  background-color: var(--accent-color);
+  color: #fff; /* Ensure text contrast */
+}
+
+nav .btn.accent-link:hover {
+  background-color: darken(var(--accent-color), 10%);
+}

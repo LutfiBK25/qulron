@@ -1,0 +1,30 @@
+<ul class="menu">
+  <li *ngFor="let item of items">
+    <button
+      class="dropdown-btn"
+      (click)="toggle(item)"
+      [ngClass]="{ rotate: item.open }"
+    >
+      <span>{{ item.label }}</span>
+      <svg
+        *ngIf="item.type === navType.SUBMENU"
+        xmlns="http://www.w3.org/2000/svg"
+        height="24px"
+        viewBox="0 -960 960 960"
+        width="24px"
+        fill="#e3e3e3"
+      >
+        <path d="M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z" />
+      </svg>
+    </button>
+
+    <ul class="sub-menu" [class.show]="item.open" *ngIf="item.children">
+      <div>
+        <app-sidebar-menu
+          [items]="item.children"
+          (loadComponent)="loadComponent.emit($event)"
+        ></app-sidebar-menu>
+      </div>
+    </ul>
+  </li>
+</ul>

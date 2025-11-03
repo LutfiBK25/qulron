@@ -1,0 +1,146 @@
+<div class="page-container">
+  <div class="table-container">
+    <div class="table-body">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Email</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Phone</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody class="table-scroll">
+          <tr *ngFor="let user of visibleData()" key="user.id">
+            <td>{{ user.id }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.role }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.firstName }}</td>
+            <td>{{ user.lastName }}</td>
+            <td>{{ user.phone }}</td>
+            <td>
+              <button
+                *ngIf="user.username !== `admin`"
+                class="delete-button"
+                (click)="deleteUser(user.username)"
+              >
+                Delete
+              </button>
+              <button class="update-button" (click)="updateUser(user.username)">
+                Update
+              </button>
+              <button
+                class="reset-button"
+                (click)="resetPassword(user.username)"
+              >
+                Reset Password
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-nav">
+      <!-- Left Group: Pagination + Page Size -->
+      <div class="table-nav-group left-group">
+        <div class="table-nav-buttons-group">
+          <!-- Go To First -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="24px"
+            viewBox="0 -960 960 960"
+            width="24px"
+            class="table-nav-button"
+            (click)="firstPage()"
+          >
+            <path
+              d="M220-240v-480h80v480h-80Zm520 0L380-480l360-240v480Zm-80-240Zm0 90v-180l-136 90 136 90Z"
+            />
+          </svg>
+
+          <!-- Go To Prev -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="24px"
+            viewBox="0 -960 960 960"
+            width="24px"
+            class="table-nav-button"
+            (click)="prevPage()"
+          >
+            <path
+              d="M640-200 200-480l440-280v560Zm-80-280Zm0 134v-268L350-480l210 134Z"
+            />
+          </svg>
+
+          <!-- Go To Next -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="24px"
+            viewBox="0 -960 960 960"
+            width="24px"
+            class="table-nav-button"
+            (click)="nextPage()"
+          >
+            <path
+              d="M320-200v-560l440 280-440 280Zm80-280Zm0 134 210-134-210-134v268Z"
+            />
+          </svg>
+
+          <!-- Go To Last -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="24px"
+            viewBox="0 -960 960 960"
+            width="24px"
+            class="table-nav-button"
+            (click)="lastPage()"
+          >
+            <path
+              d="M660-240v-480h80v480h-80Zm-440 0v-480l360 240-360 240Zm80-240Zm0 90 136-90-136-90v180Z"
+            />
+          </svg>
+        </div>
+        <div class="table-nav-page-size">
+          <select #pageSize (change)="changePageSize(+pageSize.value)">
+            <option *ngFor="let size of pageSizes" [value]="size">
+              {{ size }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <!-- Center Group: Page Numbers -->
+      <div class="table-nav-group center-group">
+        <div class="nav-page-numbers">
+          <button
+            *ngFor="let pageNumber of pageNumbers()"
+            class="py-2 px-4 cursor-pointer table-nav-page-numbers-button"
+            [ngClass]="{ 'active-page': pageNumber === currentPage }"
+            (click)="handlePageClick(pageNumber)"
+          >
+            {{ pageNumber }}
+          </button>
+        </div>
+      </div>
+      <!-- Right Group: Search + Info -->
+      <div class="table-nav-group right-group">
+        <div class="nav-page-search">
+          <input
+            type="text"
+            placeholder="Search..."
+            class="w-full border p-2 rounded-lg"
+            #searchText
+            (keyup)="filterData(searchText.value)"
+          />
+        </div>
+        <div class="table-nav-items-info">
+          {{ startIndex }} - {{ endIndex }} of {{ totalItems }} items
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

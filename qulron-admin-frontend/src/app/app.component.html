@@ -1,0 +1,26 @@
+<app-custom-popup></app-custom-popup>
+<ng-container *ngIf="!isLoggedIn">
+  <app-login></app-login>
+</ng-container>
+
+<ng-container *ngIf="isLoggedIn && isPasswordResetReq">
+  <app-reset-password />
+</ng-container>
+<ng-container *ngIf="isLoggedIn && !isPasswordResetReq">
+  <div class="app-container">
+    <header>
+      <app-header></app-header>
+    </header>
+    <app-main-nav></app-main-nav>
+    <div class="app-body">
+      <aside>
+        <app-sidebar
+          [isLeftSidebarCollapsed]="isLeftSidebarCollapsed()"
+        ></app-sidebar>
+      </aside>
+      <div class="app-main">
+        <app-main></app-main>
+      </div>
+    </div>
+  </div>
+</ng-container>

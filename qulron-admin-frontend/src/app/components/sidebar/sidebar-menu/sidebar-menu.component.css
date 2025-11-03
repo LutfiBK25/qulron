@@ -1,0 +1,70 @@
+.menu {
+  list-style: none;
+}
+
+.menu .sub-menu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 300ms ease-in-out;
+}
+
+.menu .sub-menu.show {
+  max-height: 9999px; /* Large enough to fit nested content */
+}
+.menu .page-btn,
+.menu .dropdown-btn {
+  border-radius: 0.5em;
+  padding: 0.85em;
+  text-decoration: none;
+  color: var(--text-clr);
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  cursor: pointer;
+}
+
+.dropdown-btn,
+.page-btn {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.menu svg {
+  flex-shrink: 0;
+  fill: var(--text-clr);
+}
+
+.menu .page-btn span,
+.menu .dropdown-btn span {
+  flex-grow: 1;
+}
+
+.menu .page-btn:hover,
+.menu .dropdown-btn:hover {
+  background-color: var(--sidebar-btn-hover-clr);
+}
+
+.menu .sub-menu {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: 300ms ease-in-out;
+
+  > div {
+    overflow: hidden; /* will hide the elements in div of submenu*/
+  }
+}
+
+.menu .sub-menu.show {
+  grid-template-rows: 1fr;
+}
+
+.dropdown-btn svg {
+  transition: transform 200ms ease;
+}
+.rotate svg:last-child {
+  transform: rotate(180deg);
+}

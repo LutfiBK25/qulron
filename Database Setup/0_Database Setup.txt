@@ -1,0 +1,104 @@
+-- Installing 
+https://www.postgresql.org/download/linux/debian/
+sudo apt install wget ca-certificates gnupg lsb-release
+
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+
+sudo apt update
+
+sudo apt install postgresql-17
+
+
+## Set up the password for postgres User
+sudo passwd postgres
+
+## Login as postgres user
+su - postgres
+
+
+## Check listening addresses
+sudo grep listen_addresses /etc/postgresql/*/main/postgresql.conf
+
+# switch listen addresses to *
+
+nano  /etc/postgresql/*/main/postgresql.conf
+
+listen_addresses = '*'                  # what IP address(es) to listen on;
+
+sudo nano /etc/postgresql/17/main/pg_hba.conf
+Add this at the bottom:
+
+# Database administrative login by Unix domain socket
+local   all             postgres                                peer
+
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# "local" is for Unix domain socket connections only
+local   all             all                                     peer
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            trust
+# IPv6 local connections:
+host    all             all             ::1/128                 trust
+# Allow replication connections from localhost, by a user with the
+# replication privilege.
+local   replication     all                                     peer
+host    replication     all             127.0.0.1/32            scram-sha-256
+host    replication     all             ::1/128                 scram-sha-256
+host    all             all             192.168.1.0/24          md5
+# RULES TO ALLOW IP HERE
+host    all             all             0.0.0.0/0               md5
+
+
+# If UFW is active, allow PostgreSQL
+sudo ufw allow 5432/tcp
+
+# Connect to PostgreSQL as postgres user (no password needed locally)
+sudo -u postgres psql
+
+# Set password for postgres user
+ALTER USER postgres PASSWORD 'QulronYMS';
+
+# Create your application user if it doesn't exist
+CREATE USER qulronymswebapp WITH PASSWORD 'qulron@YMS';
+
+Then restart PostgreSQL:
+systemctl restart postgresql
+
+
+-- Installing PG Cron
+
+# Update package list
+sudo apt update
+
+# Install pg_cron extension
+sudo apt install postgresql-17-cron
+
+
+# Edit PostgreSQL Configuration
+sudo nano /etc/postgresql/17/main/postgresql.conf
+
+# Add these lines
+
+######################
+
+# Add settings for extensions here
+# Enable pg_cron
+shared_preload_libraries = 'pg_cron'
+
+# Configure pg_cron database (use your database name)
+cron.database_name = 'qulron'
+cron.host = 'localhost'
+cron.port = 5432
+# Optional: Set timezone for cron jobs
+cron.timezone = 'UTC'
+
+######################
+
+# Restart PostgreSQL service
+sudo systemctl restart postgresql
+
+# now in postgresql PgAdmin or linux connect to qulron_yms db and do the following
+
+-- Install pg_cron extension in the database
+CREATE EXTENSION IF NOT EXISTS pg_cron;

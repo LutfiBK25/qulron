@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: qulron-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: qulron-engine
+          uri: ${QULRON_ENGINE_URI:http://localhost:30060}
+          predicates:
+            - Path=/posts/**
+          filters:
+            - PrefixPath/api
+            - name: AddResponseHeader
+              args:
+                name: X-Powered-By
+                value: Danson
+            - AddResponseHeader=X-Powered-By,DanSON Gateway Service
+        - id: qulron-admin
+          uri: ${QULRON_ADMIN_URI:http://localhost:30062}
+          predicates:
+            - Path=/posts/**
+          filters:
+            - PrefixPath/api
+            - name: AddResponseHeader
+              args:
+                name: X-Powered-By
+                value: Danson
+            - AddResponseHeader=X-Powered-By,DanSON Gateway Service
+

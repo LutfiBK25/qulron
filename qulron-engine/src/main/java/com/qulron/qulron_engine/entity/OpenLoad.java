@@ -29,7 +29,7 @@ public class OpenLoad {
     @Column(name = "broker_name", nullable = false, length = 100)
     private String brokerName;
 
-    @Column(name = "appointment_datetime", nullable = false)
+    @Column(name = "appointment_datetime")
     private LocalDateTime appointmentDateTime;
 
     @Column(name = "potential_weight")

@@ -96,7 +96,6 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             logger.error("Error processing JWT token for request: {}", request.getRequestURI(), e);
-            // Don't expose internal errors to client
         }
 
         filterChain.doFilter(request, response);

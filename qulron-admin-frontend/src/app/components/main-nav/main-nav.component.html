@@ -1,0 +1,18 @@
+@if (this.pageTitle != "") {
+<nav>
+  <ul>
+    <div class="page-data">
+      <li class="page-data-li">{{ pageTitle }}</li>
+    </div>
+
+    @for (button of dynamicButtonData; track $index) {
+    <li>
+      <button (click)="onButtonClick(button.action)">
+        <div [innerHTML]="getSanitizedSvg(button.svg)"></div>
+        {{ button.buttonLabel }}
+      </button>
+    </li>
+    }
+  </ul>
+</nav>
+}
