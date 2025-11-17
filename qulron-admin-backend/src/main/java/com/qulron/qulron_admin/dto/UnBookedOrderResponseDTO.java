@@ -24,6 +24,7 @@ public class UnBookedOrderResponseDTO {
     @Getter
     @Setter
     public static class UnbookedOrderInfo {
+        private Long id;
         private String loadId;
         private String orderNumbers;
         private String warehouse;

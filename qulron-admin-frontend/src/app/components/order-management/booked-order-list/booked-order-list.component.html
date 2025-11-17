@@ -6,7 +6,7 @@
           <tr>
             <th>Order ID</th>
             <th>Actions</th>
-            <th>Order Number</th>
+            <th>Order Numbers</th>
             <th>Load ID</th>
             <th>Appointment Date</th>
             <th>Broker Name</th>
@@ -35,7 +35,7 @@
                 Update
               </button> -->
             </td>
-            <td>{{ order.orderNumber }}</td>
+            <td>{{ order.orderNumbers }}</td>
             <td>{{ order.loadId }}</td>
             <td>
               {{ order.appointmentDateTime | date : "MMM/dd/yyyy HH:mm:ss" }}

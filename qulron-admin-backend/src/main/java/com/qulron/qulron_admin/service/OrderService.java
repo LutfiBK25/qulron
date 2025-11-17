@@ -40,127 +40,185 @@ public class OrderService {
 
     public UnBookedOrderResponseDTO getUnBookedOrders(HttpServletRequest request) {
         UnBookedOrderResponseDTO response = new UnBookedOrderResponseDTO();
+
         try {
-            // Get all loads with CREATED status ordered by appointment date
+            log.info("Request for all unbooked orders");
+
+            // Load IDs where status = CREATED
             List<OpenLoad> openLoads = openLoadRepo.findByLoadStatus(Status.CREATED);
+
             if (openLoads.isEmpty()) {
-                log.info("Request for unbooked orders : There is no unbooked orders");
+                log.info("There are no unbooked orders");
                 response.setStatusCode(200);
-                response.setMessage("There is currently no unbooked orders");
+                response.setMessage("There are currently no unbooked orders");
                 return response;
             }
-            List<OpenLoadDetail> openLoadDetails = openLoadDetailRepo.findByOrderStatus(Status.CREATED);
-            List<OpenOrder> openOrders = openOrderRepo.findByOrderStatus(Status.CREATED);
 
-            // Create maps for fast lookup
+            List<OpenLoadDetail> loadDetails = openLoadDetailRepo.findByOrderStatus(Status.CREATED);
+            List<OpenOrder> orders = openOrderRepo.findByOrderStatus(Status.CREATED);
+
+            // Maps for lookup
             Map<String, OpenLoad> loadMap = openLoads.stream()
-                    .collect(Collectors.toMap(OpenLoad::getLoadId, load -> load));
+                    .collect(Collectors.toMap(OpenLoad::getLoadId, l -> l));
 
-            Map<String, OpenOrder> orderMap = openOrders.stream()
-                    .collect(Collectors.toMap(OpenOrder::getOrderNumber, order -> order));
+            Map<String, OpenOrder> orderMap = orders.stream()
+                    .collect(Collectors.toMap(OpenOrder::getOrderNumber, o -> o));
 
             List<UnBookedOrderResponseDTO.UnbookedOrderInfo> unbookedOrders = new ArrayList<>();
 
-            // Now map each OpenLoadDetail to OpenOrder to OpenLoad
-            for (OpenLoadDetail loadDetail : openLoadDetails) {
-                OpenOrder openOrder = orderMap.get(loadDetail.getOrderNumber());
-                OpenLoad openLoad = loadMap.get(loadDetail.getLoadId());
+            // Group load details by loadId (like booked orders method)
+            Map<String, List<OpenLoadDetail>> loadDetailsMap = loadDetails.stream()
+                    .collect(Collectors.groupingBy(OpenLoadDetail::getLoadId));
 
-                if (openOrder != null && openLoad != null) {
-                    UnBookedOrderResponseDTO.UnbookedOrderInfo orderInfo = new UnBookedOrderResponseDTO.UnbookedOrderInfo();
-                    orderInfo.setOrderNumbers(openOrder.getOrderNumber());
-                    orderInfo.setLoadId(openLoad.getLoadId());
-                    orderInfo.setWarehouse(openOrder.getWarehouse());
-                    orderInfo.setWarehouseCode(openOrder.getWarehouse_code());
-                    orderInfo.setWarehouseAddress(openOrder.getWarehouseAddress());
-                    orderInfo.setAppointmentDateTime(openLoad.getAppointmentDateTime());
-                    orderInfo.setBrokerName(openLoad.getBrokerName());
-                    orderInfo.setOrderStatus(openOrder.getOrderStatus().name());
-                    unbookedOrders.add(orderInfo);
-                }
+            for (var entry : loadDetailsMap.entrySet()) {
+
+                String loadId = entry.getKey();
+                List<OpenLoadDetail> detailsForLoad = entry.getValue();
+
+                OpenLoad openLoad = loadMap.get(loadId);
+                if (openLoad == null) continue;
+
+                // Extract order numbers that exist in orderMap
+                List<String> orderNumbers = detailsForLoad.stream()
+                        .map(OpenLoadDetail::getOrderNumber)
+                        .filter(orderMap::containsKey)
+                        .distinct()
+                        .toList();
+
+                if (orderNumbers.isEmpty()) continue;
+
+                // Get the first order for warehouse/audit fields
+                OpenOrder firstOrder = orderMap.get(orderNumbers.getFirst());
+
+                UnBookedOrderResponseDTO.UnbookedOrderInfo dto =
+                        new UnBookedOrderResponseDTO.UnbookedOrderInfo();
+
+                dto.setId(openLoad.getId());
+                dto.setLoadId(openLoad.getLoadId());
+                dto.setOrderNumbers(String.join(", ", orderNumbers));
+                dto.setWarehouse(firstOrder.getWarehouse());
+                dto.setWarehouseCode(firstOrder.getWarehouse_code());
+                dto.setWarehouseAddress(firstOrder.getWarehouseAddress());
+                dto.setOrderStatus(firstOrder.getOrderStatus().name());
+                dto.setBrokerName(openLoad.getBrokerName());
+                dto.setAppointmentDateTime(openLoad.getAppointmentDateTime());
+
+                unbookedOrders.add(dto);
             }
 
-            // Sort the final result by appointment date to preserve backend sorting
-            unbookedOrders.sort(Comparator.comparing(UnBookedOrderResponseDTO.UnbookedOrderInfo::getAppointmentDateTime));
+            // Sort by appointment
+            unbookedOrders.sort(
+                    Comparator.comparing(UnBookedOrderResponseDTO.UnbookedOrderInfo::getAppointmentDateTime)
+            );
 
             response.setUnbookedOrderInfoList(unbookedOrders);
-            log.info("Unbooked orders retrieved successfully");
             response.setStatusCode(200);
             response.setMessage("Unbooked orders retrieved successfully");
+
         } catch (Exception e) {
+            log.error("Error retrieving unbooked orders", e);
             response.setStatusCode(500);
-            response.setMessage("Internal Server Error " + e.getMessage());
+            response.setMessage("Internal Server Error");
         }
+
         return response;
     }
 
     public BookedOrderResponseDTO getBookedOrders(HttpServletRequest request) {
         BookedOrderResponseDTO response = new BookedOrderResponseDTO();
+
         try {
             log.info("Request for all booked orders");
+
             // Get all loads with CREATED, ACTIVATED, STARTED statuses
             List<LoadMaster> loadMasters = loadMasterRepo.findByLoadStatusIn(
                     List.of(Status.CREATED, Status.ACTIVATED, Status.STARTED));
 
             if (loadMasters.isEmpty()) {
-                log.info("There is no booked orders");
+                log.info("There are no booked orders");
                 response.setStatusCode(200);
                 response.setMessage("No Booked Orders Found");
                 return response;
             }
+
             List<LoadDetail> loadDetails = loadDetailRepo.findByOrderStatusIn(
                     List.of(Status.CREATED, Status.ACTIVATED, Status.STARTED));
+
             List<Order> orders = orderRepo.findByOrderStatusIn(
                     List.of(Status.CREATED, Status.ACTIVATED, Status.STARTED));
 
-            // Create maps for fast lookup
+            // Maps for quick lookup
             Map<String, LoadMaster> loadMap = loadMasters.stream()
-                    .collect(Collectors.toMap(LoadMaster::getLoadId, load -> load));
+                    .collect(Collectors.toMap(LoadMaster::getLoadId, lm -> lm));
 
             Map<String, Order> orderMap = orders.stream()
-                    .collect(Collectors.toMap(Order::getOrderNumber, order -> order));
+                    .collect(Collectors.toMap(Order::getOrderNumber, o -> o));
 
-            List<BookedOrderResponseDTO.CurrentOrderInfo> bookedOrders = new ArrayList<>();
+            List<BookedOrderResponseDTO.CurrentOrderInfo> bookedLoads = new ArrayList<>();
 
-            // Now map each LoadDetail to Order to LoadMaster
-            for (LoadDetail loadDetail : loadDetails) {
-                Order order = orderMap.get(loadDetail.getOrderNumber());
-                LoadMaster loadMaster = loadMap.get(loadDetail.getLoadId());
+            // Group LoadDetails by loadId
+            Map<String, List<LoadDetail>> loadDetailsMap = loadDetails.stream()
+                    .collect(Collectors.groupingBy(LoadDetail::getLoadId));
 
-                if (order != null && loadMaster != null) {
-                    BookedOrderResponseDTO.CurrentOrderInfo orderInfo = new BookedOrderResponseDTO.CurrentOrderInfo();
-                    orderInfo.setId(order.getId());
-                    orderInfo.setOrderNumbers(order.getOrderNumber());
-                    orderInfo.setLoadId(loadDetail.getLoadId());
-                    orderInfo.setWarehouse(order.getWarehouse());
-                    orderInfo.setWarehouseCode(order.getWarehouse_code());
-                    orderInfo.setWarehouseAddress(order.getWarehouseAddress());
-                    orderInfo.setOrderStatus(order.getOrderStatus().name());
-                    orderInfo.setBrokerName(loadMaster.getBrokerName());
-                    orderInfo.setDriverName(loadMaster.getDriverName());
-                    orderInfo.setPhoneNumber(loadMaster.getPhoneNumber());
-                    orderInfo.setAppointmentDateTime(loadMaster.getAppointmentDateTime());
-                    orderInfo.setRecordCreateId(order.getRecordCreateId());
-                    orderInfo.setRecordCreateDate(order.getRecordCreateDate());
-                    orderInfo.setRecordUpdateId(order.getRecordUpdateId());
-                    orderInfo.setRecordUpdateDate(order.getRecordUpdateDate());
+            // Process each load
+            for (var entry : loadDetailsMap.entrySet()) {
 
-                    bookedOrders.add(orderInfo);
+                String loadId = entry.getKey();
+                List<LoadDetail> detailsForLoad = entry.getValue();
+                LoadMaster loadMaster = loadMap.get(loadId);
+
+                if (loadMaster == null) continue;
+
+                // Default coordinates if null
+                if (loadMaster.getLastDriverLatitude() == null || loadMaster.getLastDriverLongitude() == null) {
+                    loadMaster.setLastDriverLatitude(BigDecimal.ZERO);
+                    loadMaster.setLastDriverLongitude(BigDecimal.ZERO);
                 }
+
+                // Extract distinct order numbers for this load
+                List<String> orderNumbers = detailsForLoad.stream()
+                        .map(LoadDetail::getOrderNumber)
+                        .filter(orderMap::containsKey)
+                        .distinct()
+                        .toList();
+
+                if (orderNumbers.isEmpty()) continue;
+
+                // Pick *any order* for warehouse + audit details
+                // (all orders in the load generally share same warehouse)
+                Order firstOrder = orderMap.get(orderNumbers.getFirst());
+
+                BookedOrderResponseDTO.CurrentOrderInfo dto = new BookedOrderResponseDTO.CurrentOrderInfo();
+                dto.setId(loadMaster.getId());
+                dto.setOrderNumbers(String.join(", ", orderNumbers));
+                dto.setLoadId(loadId);
+                dto.setWarehouse(firstOrder.getWarehouse());
+                dto.setWarehouseCode(firstOrder.getWarehouse_code());
+                dto.setWarehouseAddress(firstOrder.getWarehouseAddress());
+                dto.setOrderStatus(firstOrder.getOrderStatus().name());
+                dto.setBrokerName(loadMaster.getBrokerName());
+                dto.setDriverName(loadMaster.getDriverName());
+                dto.setPhoneNumber(loadMaster.getPhoneNumber());
+                dto.setAppointmentDateTime(loadMaster.getAppointmentDateTime());
+                dto.setRecordCreateId(firstOrder.getRecordCreateId());
+                dto.setRecordCreateDate(firstOrder.getRecordCreateDate());
+                dto.setRecordUpdateId(firstOrder.getRecordUpdateId());
+                dto.setRecordUpdateDate(firstOrder.getRecordUpdateDate());
+
+                bookedLoads.add(dto);
             }
 
-            response.setBookedOrders(bookedOrders);
             response.setStatusCode(200);
-            response.setMessage("Booked orders retrieved successfully");
-            log.info("Booked orders retrieved successfully");
+            response.setMessage("Success");
+            response.setBookedOrders(bookedLoads);
+            return response;
 
-
-        } catch (Exception e) {
-            log.warn("Internal Server Error {}", e.getMessage());
+        } catch (Exception ex) {
+            log.error("Error retrieving booked orders", ex);
             response.setStatusCode(500);
-            response.setMessage("Internal Server Error " + e.getMessage());
+            response.setMessage("Internal Server Error");
+            return response;
         }
-        return response;
     }
 
     public BookedOrderResponseDTO clearOrderSubmission(HttpServletRequest request, Long Id) {

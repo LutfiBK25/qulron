@@ -4,7 +4,8 @@
       <table>
         <thead>
           <tr>
-            <th>Order Number</th>
+            <th>Order Numbers</th>
+            <th>Load ID</th>
             <th>Broker Name</th>
             <th>Order Status</th>
             <th>Appointment Date</th>
@@ -13,7 +14,8 @@
         </thead>
         <tbody class="table-scroll">
           <tr *ngFor="let order of visibleData()" key="order.orderNumber">
-            <td>{{ order.orderNumber }}</td>
+            <td>{{ order.orderNumbers }}</td>
+            <td>{{ order.loadId }}</td>
             <td>{{ order.brokerName }}</td>
             <td>{{ order.orderStatus }}</td>
             <td>
