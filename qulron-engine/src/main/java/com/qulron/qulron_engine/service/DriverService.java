@@ -9,6 +9,9 @@ import com.qulron.qulron_engine.enums.Status;
 import com.qulron.qulron_engine.repository.*;
 import com.qulron.qulron_engine.utility.DeviceFingerprintUtils;
 import com.qulron.qulron_engine.utility.JWTUtils;
+import com.twilio.Twilio;
+import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.type.PhoneNumber;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,6 +52,8 @@ public class DriverService {
     private String TWILIO_ACCOUNT_SID;
     @Value("${twilio.auth.token}")
     private String TWILIO_AUTH_TOKEN;
+    @Value("${twilio.account.phone}")
+    private String TWILIO_PHONE;
     private static final double[][] FACILITY_BOUNDARY = {
             {40.52302959924054, -74.32324877112171}, // Point 1
             {40.523202602650116, -74.32639714054851}, // Point 2
@@ -147,17 +152,13 @@ public class DriverService {
         // Format phone number for Twilio
         String formattedPhoneNumber = formatPhoneNumberForTwilio(phoneNumber);
 
-//         Twilio.init(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-//         Message message = Message
-//         .creator(
-////         new PhoneNumber(formattedPhoneNumber),
-//         new PhoneNumber("+19738551518"),
-//         new PhoneNumber("+18555723425"),
-//         "Welcome to Arizona, Verification code: " + verificationCode)
-//         .create();
-
-        // For now, we'll just return the code in the response for testing
-        System.out.println("Verification code for " + phoneNumber + ": " + verificationCode);
+         Twilio.init(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+         Message message = Message
+         .creator(
+         new PhoneNumber(formattedPhoneNumber),
+         new PhoneNumber(TWILIO_PHONE),
+         "Welcome to Arizona Beverages,Your Verification code: " + verificationCode)
+         .create();
 
         response.setStatusCode(200);
         response.setMessage("Verification code sent to your phone number");

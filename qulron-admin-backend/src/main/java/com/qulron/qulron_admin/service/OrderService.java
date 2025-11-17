@@ -83,7 +83,7 @@ public class OrderService {
             // Sort the final result by appointment date to preserve backend sorting
             unbookedOrders.sort(Comparator.comparing(UnBookedOrderResponseDTO.UnbookedOrderInfo::getAppointmentDateTime));
 
-            response.setOrders(unbookedOrders);
+            response.setUnbookedOrderInfoList(unbookedOrders);
             log.info("Unbooked orders retrieved successfully");
             response.setStatusCode(200);
             response.setMessage("Unbooked orders retrieved successfully");
@@ -149,7 +149,7 @@ public class OrderService {
                 }
             }
 
-            response.setOrders(bookedOrders);
+            response.setBookedOrders(bookedOrders);
             response.setStatusCode(200);
             response.setMessage("Booked orders retrieved successfully");
             log.info("Booked orders retrieved successfully");
