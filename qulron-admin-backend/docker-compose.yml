@@ -1,0 +1,21 @@
+version: '3.9'
+
+services:
+  qulron-backend:
+    image: qulron-admin:1.0.0
+    container_name: qulron-admin
+    restart: always
+    ports:
+      - "30061:30061"
+    env_file: .env
+    deploy:
+      resources:
+        limits:
+          memory: 1500M      # Limit memory to 1.5 GB
+    volumes:
+      - ./logs:/app/logs  # Persist logs to host VM
+    logging: # this is docker logging our main logs are coming from the app itself
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"

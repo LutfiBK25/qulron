@@ -12,15 +12,17 @@ import {
   throwError,
 } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
+import { environment } from '../../../environments/environment';
 
 // makes the service available through the whole application
 @Injectable({
   providedIn: 'root',
 })
 export class UserManagementService {
-  private BASE_URL = 'http://localhost:30061/api/user_management'; // api url
-  private HEALTH_CHECK_URL = 'http://localhost:30061/api/health'; // ✅ Ensure this exists in your backend!
-  private apiHealthCheck$ = new Subject<void>(); // Subject to manage unsubscription
+  private BASE_URL = `${environment.apiUrl}/user_management`; // api url
+  private HEALTH_CHECK_URL = `${environment.apiUrl}/health`; // ✅ Ensure this exists in your backend!
+
+   private apiHealthCheck$ = new Subject<void>(); // Subject to manage unsubscription
 
   private authStatus = new BehaviorSubject<boolean>(this.isAuthenticated()); // Track auth status
   authStatus$ = this.authStatus.asObservable(); // Observable to subscribe to auth status updates

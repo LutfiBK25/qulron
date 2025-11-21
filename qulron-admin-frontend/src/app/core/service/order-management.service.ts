@@ -1,12 +1,13 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, Observable, throwError } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class OrderManagementService {
-  private BASE_URL = 'http://localhost:30061/api/order_management'; // api url
+  private BASE_URL = `${environment.apiUrl}/order_management`; // api url
   constructor(private http: HttpClient) {}
 
   getUnBookedOrders(token: string): Observable<any> {
