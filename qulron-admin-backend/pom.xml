@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.qulron</groupId>
-    <artifactId>qulron_admin</artifactId>
+    <artifactId>qulron-admin</artifactId>
     <version>1.0.0</version>
     <name>qulron_admin</name>
     <description>Qulron Admin</description>

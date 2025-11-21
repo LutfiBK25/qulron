@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -153,8 +152,7 @@ public class DriverService {
         String formattedPhoneNumber = formatPhoneNumberForTwilio(phoneNumber);
 
          Twilio.init(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-         Message message = Message
-         .creator(
+         Message.creator(
          new PhoneNumber(formattedPhoneNumber),
          new PhoneNumber(TWILIO_PHONE),
          "Welcome to Arizona Beverages,Your Verification code: " + verificationCode)
