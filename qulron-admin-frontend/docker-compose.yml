@@ -3,7 +3,11 @@ version: '3.9'
 services:
   qulron-yms-frontend:
     image: qulron-admin-frontend:1.0.0
-    container_name: qulron-frontend
+    container_name: qulron-admin-frontend
     restart: always
     ports:
       - "30062:80"
+    deploy:
+      resources:
+        limits:
+          memory: 500M   
