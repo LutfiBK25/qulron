@@ -67,7 +67,8 @@ GRANT ALL PRIVILEGES ON TABLE t_wms_sst_rcv_tab TO qulronhjuser;
 GRANT USAGE, SELECT ON SEQUENCE t_wms_sst_RCV_tab_msg_id_seq TO qulronhjuser;
 /*
 Current SND Tasks
-	* ADD01: Add to Yard
+	* ADD01: Add to Check in (Driver Arrived), need to go to yard or door
+	* ADD02: In the yard, need to be sent to a door OR Another yard
 */
 -- status type: 
 -- Messages From YMS to WMS
@@ -119,8 +120,8 @@ CREATE TABLE t_al_host_load_master (
     err_text VARCHAR(200),
 	load_id		VARCHAR(30) NOT NULL,
 	status VARCHAR(10) NOT NULL,
-    broker_name VARCHAR(100) NOT NULL,
-	appointment_datetime TIMESTAMP NOT NULL,
+    broker_name VARCHAR(100),
+	appointment_datetime TIMESTAMP,
     potential_weight DECIMAL(10,2),
     record_create_id VARCHAR(30) NOT NULL,
     record_create_date TIMESTAMP NOT NULL,
@@ -162,7 +163,7 @@ CREATE INDEX idx_al_host_order_status ON t_al_host_order(status);
 CREATE TABLE t_al_host_task(
     id BIGSERIAL PRIMARY KEY,
     err_text VARCHAR(200),
-    load_id BIGINT NOT NULL,
+    load_id VARCHAR(30) NOT NULL,
     status VARCHAR(10) NOT NULL,
     destination_area VARCHAR(5) NOT NULL,
     destination_location VARCHAR(30) NOT NULL,

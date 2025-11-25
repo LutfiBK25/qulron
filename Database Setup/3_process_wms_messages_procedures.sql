@@ -60,15 +60,6 @@ BEGIN
 	IF p_dest_country_code IS NULL OR TRIM(p_dest_country_code) = '' THEN
         RAISE EXCEPTION 'Destination country is required';
     END IF;
-    IF p_appointment_datetime IS NULL THEN
-        RAISE EXCEPTION 'Appointment datetime is required';
-    END IF;
-    IF p_potential_weight IS NULL OR p_potential_weight <= 0 THEN
-        RAISE EXCEPTION 'Potential weight must be greater than 0';
-    END IF;
-    IF p_broker_name IS NULL OR TRIM(p_broker_name) = '' THEN
-        RAISE EXCEPTION 'Broker name is required';
-    END IF;
     IF p_current_user IS NULL OR TRIM(p_current_user) = '' THEN
         RAISE EXCEPTION 'User is required';
     END IF;
