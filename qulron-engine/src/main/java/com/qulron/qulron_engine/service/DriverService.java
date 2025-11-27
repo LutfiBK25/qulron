@@ -13,6 +13,7 @@ import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -32,9 +33,20 @@ public class DriverService {
     private static final int MAX_LOGIN_ATTEMPTS = 5;
     private static final long RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes in milliseconds
     // In-memory storage for verification codes and rate limiting
-    private final Cache<String, String> verificationCodes = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).maximumSize(10_000).build();
-    private final Cache<String, Integer> loginAttempts = CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.MINUTES).maximumSize(10_000).build();
-    private final Cache<String, Long> lastAttemptTime = CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.MINUTES).maximumSize(10_000).build();
+    private final Cache<@NonNull String,@NonNull String> verificationCodes = CacheBuilder.newBuilder()
+            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .maximumSize(10_000)
+            .build();
+
+    private final Cache<@NonNull String,@NonNull Integer> loginAttempts = CacheBuilder.newBuilder()
+            .expireAfterWrite(15, TimeUnit.MINUTES)
+            .maximumSize(10_000)
+            .build();
+
+    private final Cache<@NonNull String, @NonNull Long> lastAttemptTime = CacheBuilder.newBuilder()
+            .expireAfterWrite(15, TimeUnit.MINUTES)
+            .maximumSize(10_000)
+            .build();
     private final LoadMasterRepo loadMasterRepo;
     private final LoadDetailRepo loadDetailRepo;
     private final OrderRepo orderRepo;
