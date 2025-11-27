@@ -190,7 +190,9 @@ export class DriverDashboardComponent implements OnInit, OnDestroy {
         switchMap((response) => {
           if (response.statusCode === 200) {
             this.mapResponseToDriverData(response);
-            this.validateDriverArrivalStatus();
+            if (!this.driverData.driverArrived){
+              this.validateDriverArrivalStatus();
+            }
             return EMPTY;
           } else {
             this.popupService.show(`Error`, `${response.message}`);
@@ -213,7 +215,9 @@ export class DriverDashboardComponent implements OnInit, OnDestroy {
         switchMap((response) => {
           if (response.statusCode === 200) {
             this.mapResponseToDriverData(response);
+          if (!this.driverData.driverArrived){
             this.validateDriverArrivalStatus();
+          }
             // Start location tracking after dashboard data is loaded
             this.initializeDriverLocationTracking();
             return EMPTY;
@@ -241,7 +245,7 @@ export class DriverDashboardComponent implements OnInit, OnDestroy {
         this.driverLocation?.lng || 0
       );
       if (!isWithinCustomBox) {
-        this.popupService.show('Error', 'You are not within the facility');
+        this.popupService.show('Not Within Facility', 'Please Make sure you have arrived to facility');
         return;
       }
     }
@@ -253,9 +257,9 @@ export class DriverDashboardComponent implements OnInit, OnDestroy {
         this.driverLocation?.lng || 0
       )
       .subscribe((response) => {
+        console.log('confirmDriverArrival handleDriverArrivalConfirmation');
         if (response.statusCode === 200) {
           this.fetchLatestDashboardData();
-          this.validateDriverArrivalStatus();
         } else {
           this.popupService.show('Error', `${response.message}`);
         }

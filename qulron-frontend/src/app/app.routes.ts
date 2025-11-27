@@ -5,7 +5,9 @@ import { DriverGatewayComponent } from './components/user-management/driver-gate
 
 export const routes: Routes = [
   { path: 'driver', component: DriverGatewayComponent },
+  { path: 'DRIVER', component: DriverGatewayComponent },
   { path: 'broker', component: BrokerGatewayComponent },
+  { path: 'BROKER', component: BrokerGatewayComponent },
   { path: '', component: UserGatewayComponent, pathMatch: 'full' },
   { path: '**', redirectTo: '' },
 ];

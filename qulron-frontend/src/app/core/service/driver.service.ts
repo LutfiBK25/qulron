@@ -107,7 +107,6 @@ export class DriverService {
     driverLat: number,
     driverLng: number
   ): Observable<ConfirmArrivalResponse> {
-    console.log('confirmDriverArrival');
     const url = `${this.BASE_URL}/arrival`;
     const request: ConfirmArrivalRequest = {
       isLocationTracking,
