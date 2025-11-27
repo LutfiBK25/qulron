@@ -45,14 +45,10 @@ public class DriverService {
     private final TrailerService trailerService;
     private final TaskService taskService;
     private final YardLocationService yardLocationService;
-    @Value("${app.system-user}")
-    private String SYSTEM_USER;
-    @Value("${twilio.account.sid}")
-    private String TWILIO_ACCOUNT_SID;
-    @Value("${twilio.auth.token}")
-    private String TWILIO_AUTH_TOKEN;
-    @Value("${twilio.account.phone}")
-    private String TWILIO_PHONE;
+    private final String SYSTEM_USER;
+    private final String TWILIO_ACCOUNT_SID;
+    private final String TWILIO_AUTH_TOKEN;
+    private final String TWILIO_PHONE;
     private static final double[][] FACILITY_BOUNDARY = {
             {40.52302959924054, -74.32324877112171}, // Point 1
             {40.523202602650116, -74.32639714054851}, // Point 2
@@ -71,7 +67,12 @@ public class DriverService {
             {40.52298923171724, -74.32334739472645}  // Point 15
     };
 
-    public DriverService(LoadMasterRepo loadMasterRepo, LoadDetailRepo loadDetailRepo, OrderRepo orderRepo, TrailerRepo trailerRepo, WmsSstSndTabRepo wmsSstSndTabRepo, JWTUtils jwtUtils, DeviceFingerprintUtils deviceFingerprintUtils, TrailerService trailerService, TaskService taskService, YardLocationService yardLocationService) {
+    public DriverService(LoadMasterRepo loadMasterRepo, LoadDetailRepo loadDetailRepo, OrderRepo orderRepo,
+                         TrailerRepo trailerRepo, WmsSstSndTabRepo wmsSstSndTabRepo, JWTUtils jwtUtils,
+                         DeviceFingerprintUtils deviceFingerprintUtils, TrailerService trailerService,
+                         TaskService taskService, YardLocationService yardLocationService,
+                         @Value("${app.system-user}") String SYSTEM_USER, @Value("${twilio.account.sid}") String TWILIO_ACCOUNT_SID,
+                         @Value("${twilio.auth.token}") String TWILIO_AUTH_TOKEN, @Value("${twilio.account.phone}") String TWILIO_PHONE) {
         this.loadMasterRepo = loadMasterRepo;
         this.loadDetailRepo = loadDetailRepo;
         this.orderRepo = orderRepo;
@@ -82,8 +83,11 @@ public class DriverService {
         this.trailerService = trailerService;
         this.taskService = taskService;
         this.yardLocationService = yardLocationService;
+        this.SYSTEM_USER = SYSTEM_USER;
+        this.TWILIO_ACCOUNT_SID = TWILIO_ACCOUNT_SID;
+        this.TWILIO_AUTH_TOKEN = TWILIO_AUTH_TOKEN;
+        this.TWILIO_PHONE = TWILIO_PHONE;
     }
-
     private static WmsSstSndTab getWmsSstSndTab(LoadMaster foundLoad, String orderNumbers, Trailer founderTrailer, String SYSTEM_USER) {
         WmsSstSndTab msg = new WmsSstSndTab();
         msg.setMsgType("ADD01");
@@ -348,7 +352,7 @@ public class DriverService {
                             log.error("Failed to save order for order number: {} , it was not found", loadDetail.getOrderNumber());
                             throw new RuntimeException("Failed to save order, order was not found");
                         }
-                        Order foundOrder = new Order();
+                        Order foundOrder;
                         foundOrder = order.get();
                         foundOrder.setOrderStatus(Status.ACTIVATED);
                         foundOrder.setRecordUpdateId(SYSTEM_USER);
