@@ -285,7 +285,7 @@ public class DriverService {
             }
 
             if(driverArrivalRequestDTO.isLocationTracking()){
-                if (!isDriverInsideFacilityBoundary(driverArrivalRequestDTO.getDriverLat(),driverArrivalRequestDTO.getDriverLng(),FACILITY_BOUNDARY)){
+                if (!isDriverInsideFacilityBoundary(driverArrivalRequestDTO.getDriverLat(),driverArrivalRequestDTO.getDriverLng())){
                     response.setStatusCode(400);
                     response.setMessage("Driver is not within the facility");
                     response.setMessageCode("Message_Code_25");
@@ -394,15 +394,15 @@ public class DriverService {
         return response;
     }
 
-    private boolean isDriverInsideFacilityBoundary(double driverLat, double driverLng, double[][] polygon) {
+    private boolean isDriverInsideFacilityBoundary(double driverLat, double driverLng) {
         boolean isInside = false;
-        int prev = polygon.length - 1;
+        int prev = FACILITY_BOUNDARY.length - 1;
 
-        for (int i = 0; i < polygon.length; i++) {
-            double currentLat = polygon[i][0];
-            double currentLng = polygon[i][1];
-            double prevLat = polygon[prev][0];
-            double prevLng = polygon[prev][1];
+        for (int i = 0; i < FACILITY_BOUNDARY.length; i++) {
+            double currentLat = FACILITY_BOUNDARY[i][0];
+            double currentLng = FACILITY_BOUNDARY[i][1];
+            double prevLat = FACILITY_BOUNDARY[prev][0];
+            double prevLng = FACILITY_BOUNDARY[prev][1];
 
             // Ray casting algorithm
             boolean intersects = ((currentLat > driverLat) != (prevLat > driverLat)) &&
@@ -512,8 +512,8 @@ public class DriverService {
                     response.setLatitude(yardLocation.getLatitude());
                     response.setLongitude(yardLocation.getLongitude());
                 } else {
-                    response.setCurrentDestinationArea(null);
-                    response.setCurrentDestinationLocation(null);
+                    response.setCurrentDestinationArea(task.getDestinationArea());
+                    response.setCurrentDestinationLocation(task.getDestinationLocation());
                     response.setLatitude(null);
                     response.setLongitude(null);
                 }
