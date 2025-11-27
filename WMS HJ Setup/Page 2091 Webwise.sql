@@ -1,5 +1,5 @@
 SELECT color, wh_id, order_numbers, check_in_status,
-    open_dock_door, send_to_yard, load_id, delivery_type,
+    send_to_door, send_to_yard, load_id, delivery_type,
     allocation_status, broker_name, carrier, driver_name,
     driver_phone, trailer_number, arrival_date, staging_location,
     expected_arrival, yard_id, trailer_type, document_id,
@@ -7,7 +7,7 @@ SELECT color, wh_id, order_numbers, check_in_status,
 FROM (
     SELECT
         CASE 
-            WHEN qulron.msg_type = 'ADD01' THEN '{{BGCOLOR=#FF9B45}}'
+            WHEN qulron.msg_type = 'ADD01' THEN '{{BGCOLOR=#E5FAFF}}'
             WHEN qulron.msg_type = 'ADD02' THEN '{{BGCOLOR=#6BE005}}'
         END AS color,
 
@@ -19,7 +19,7 @@ FROM (
             WHEN qulron.msg_type = 'ADD02' THEN 'IN YARD WAITING TO BE PUT ON A DOOR'
         END AS check_in_status,
 
-        'Send to Door' AS open_dock_door,
+        'Send to Door' AS send_to_door,
         'Send to Yard' AS send_to_yard,
 
         ISNULL(ldm.load_id,'NA') AS load_id,
@@ -100,7 +100,7 @@ FROM (
 
 GROUP BY 
     color, wh_id, order_numbers, check_in_status,
-    open_dock_door, send_to_yard, load_id, delivery_type,
+    send_to_door, send_to_yard, load_id, delivery_type,
     allocation_status, broker_name, carrier, driver_name,
     driver_phone, trailer_number, arrival_date, staging_location,
     expected_arrival, yard_id, trailer_type, document_id,
