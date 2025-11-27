@@ -42,8 +42,8 @@ export class OrderManagementService {
   }
 
   // In your order service
-  cancelOrder(orderId: number, token: string): Observable<any> {
-    const url = `${this.BASE_URL}/cancel/${orderId}`;
+  cancelOrder(loadId: string, token: string): Observable<any> {
+    const url = `${this.BASE_URL}/cancel/${loadId}`;
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
     });

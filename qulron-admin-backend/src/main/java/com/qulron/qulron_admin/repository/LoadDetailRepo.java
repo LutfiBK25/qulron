@@ -9,9 +9,6 @@ import java.util.List;
 
 @Repository
 public interface LoadDetailRepo extends JpaRepository<LoadDetail, Long> {
-    List<LoadDetail> findByLoadId(String loadId);
-
-    List<LoadDetail> findByOrderNumber(String orderNumber);
-
     List<LoadDetail> findByOrderStatusIn(List<Status> orderStatuses);
+    List<LoadDetail> findByLoadIdAndOrderStatusIn(String loadId, List<Status> orderStatuses);
 }

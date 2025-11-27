@@ -221,7 +221,7 @@ public class OrderService {
         }
     }
 
-    public BookedOrderResponseDTO clearOrderSubmission(HttpServletRequest request, Long Id) {
+    public BookedOrderResponseDTO clearOrderSubmission(HttpServletRequest request, String loadId) {
         BookedOrderResponseDTO response = new BookedOrderResponseDTO();
         try {
             String token = jwtUtils.extractToken(request);
@@ -233,92 +233,73 @@ public class OrderService {
 
             String username = jwtUtils.extractUsername(token);
 
-            Optional<Order> order = orderRepo.findById(Id);
-            if (order.isPresent()) {
-                Order foundOrder = order.get();
-
-                if (foundOrder.getOrderStatus() == Status.CREATED) {
-                    // Find Load Id Using Load Detail
-                    List<LoadDetail> loadDetails = loadDetailRepo.findByOrderNumber(foundOrder.getOrderNumber());
-
-                    if (!loadDetails.isEmpty()) {
-                        LoadDetail loadDetail = loadDetails.getFirst();
-                        String loadId = loadDetail.getLoadId();
-
-                        // Find all orders for this load
-                        List<LoadDetail> allLoadDetails = loadDetailRepo.findByLoadId(loadId);
-                        List<String> orderNumbers = allLoadDetails.stream()
-                                .map(LoadDetail::getOrderNumber)
-                                .collect(Collectors.toList());
-
-                        List<Order> allOrders = orderRepo.findByOrderNumberIn(orderNumbers);
-
-                        // Find the LoadMaster
-                        Optional<LoadMaster> loadMasterOpt = loadMasterRepo.findByLoadId(loadId);
-
-                        // Update all orders to CANCELLED
-                        for (Order orderToUpdate : allOrders) {
-                            orderToUpdate.setOrderStatus(Status.CANCELLED);
-                            orderToUpdate.setRecordUpdateId(username);
-                            orderToUpdate.setRecordUpdateDate(LocalDateTime.now());
-                            orderRepo.save(orderToUpdate);
-                        }
-
-                        // Update LoadMaster to CANCELLED
-                        if (loadMasterOpt.isPresent()) {
-                            LoadMaster loadMaster = loadMasterOpt.get();
-                            loadMaster.setLoadStatus(Status.CANCELLED);
-                            loadMaster.setRecordUpdateId(username);
-                            loadMaster.setRecordUpdateDate(LocalDateTime.now());
-                            loadMasterRepo.save(loadMaster);
-                        }
-
-                        // Update all LoadDetails to CANCELLED
-                        for (LoadDetail detail : allLoadDetails) {
-                            detail.setOrderStatus(Status.CANCELLED);
-                            loadDetailRepo.save(detail);
-                        }
-
-                        // Find and update OpenOrder, OpenLoad, OpenLoadDetail to CREATED
-                        List<OpenOrder> openOrders = openOrderRepo.findByOrderNumberIn(orderNumbers);
-                        for (OpenOrder openOrder : openOrders) {
-                            openOrder.setOrderStatus(Status.CREATED);
-                            openOrder.setRecordUpdateId(username);
-                            openOrder.setRecordUpdateDate(LocalDateTime.now());
-                            openOrderRepo.save(openOrder);
-                        }
-
-                        // Find OpenLoad
-                        Optional<OpenLoad> openLoadOpt = openLoadRepo.findByLoadId(loadId);
-                        if (openLoadOpt.isPresent()) {
-                            OpenLoad openLoad = openLoadOpt.get();
-                            openLoad.setLoadStatus(Status.CREATED);
-                            openLoad.setRecordUpdateId(username);
-                            openLoad.setRecordUpdateDate(LocalDateTime.now());
-                            openLoadRepo.save(openLoad);
-                        }
-
-                        // Find and update OpenLoadDetails
-                        List<OpenLoadDetail> openLoadDetails = openLoadDetailRepo.findByLoadId(loadId);
-                        for (OpenLoadDetail openLoadDetail : openLoadDetails) {
-                            openLoadDetail.setOrderStatus(Status.CREATED);
-                            openLoadDetailRepo.save(openLoadDetail);
-                        }
-
-                        response.setStatusCode(200);
-                        response.setMessage("Order cancelled successfully");
-                    } else {
-                        response.setStatusCode(404);
-                        response.setMessage("Load details not found for this order");
-                    }
-                } else {
-                    response.setStatusCode(404);
-                    response.setMessage("Invalid Order To Delete, Driver is in the facility");
-                }
-            } else {
+            Optional<LoadMaster> load = loadMasterRepo.findByLoadIdAndLoadStatusIn(loadId, List.of(Status.CREATED) );
+            if (load.isEmpty()) {
                 response.setStatusCode(404);
-                response.setMessage("Invalid Order");
+                response.setMessage("Invalid Order To Delete, Driver is in the facility");
+                return  response;
             }
+
+            LoadMaster foundLoad = load.get();
+
+            // Find all orders for this load
+            List<LoadDetail> allLoadDetails = loadDetailRepo.findByLoadIdAndOrderStatusIn(loadId, List.of(Status.CREATED));
+            List<String> orderNumbers = allLoadDetails.stream()
+                    .map(LoadDetail::getOrderNumber)
+                    .collect(Collectors.toList());
+
+            List<Order> allOrders = orderRepo.findByOrderNumberInAndOrderStatus(orderNumbers, Status.CREATED);
+
+
+            // Update all orders to CANCEL
+            for (Order orderToUpdate : allOrders) {
+                orderToUpdate.setOrderStatus(Status.CANCELLED);
+                orderToUpdate.setRecordUpdateId(username);
+                orderToUpdate.setRecordUpdateDate(LocalDateTime.now());
+                orderRepo.delete(orderToUpdate);
+            }
+
+            foundLoad.setLoadStatus(Status.CANCELLED);
+            foundLoad.setRecordUpdateId(username);
+            foundLoad.setRecordUpdateDate(LocalDateTime.now());
+            loadMasterRepo.delete(foundLoad);
+
+            // Update all LoadDetails to CANCELLED
+            for (LoadDetail detail : allLoadDetails) {
+                detail.setOrderStatus(Status.CANCELLED);
+                loadDetailRepo.delete(detail);
+            }
+
+            // Find and update OpenOrder, OpenLoad, OpenLoadDetail to CREATED
+            List<OpenOrder> openOrders = openOrderRepo.findByOrderNumberIn(orderNumbers);
+            for (OpenOrder openOrder : openOrders) {
+                openOrder.setOrderStatus(Status.CREATED);
+                openOrder.setRecordUpdateId(username);
+                openOrder.setRecordUpdateDate(LocalDateTime.now());
+                openOrderRepo.save(openOrder);
+            }
+
+            // Find OpenLoad
+            Optional<OpenLoad> openLoadOpt = openLoadRepo.findByLoadId(loadId);
+            if (openLoadOpt.isPresent()) {
+                OpenLoad openLoad = openLoadOpt.get();
+                openLoad.setLoadStatus(Status.CREATED);
+                openLoad.setRecordUpdateId(username);
+                openLoad.setRecordUpdateDate(LocalDateTime.now());
+                openLoadRepo.save(openLoad);
+            }
+
+            // Find and update OpenLoadDetails
+            List<OpenLoadDetail> openLoadDetails = openLoadDetailRepo.findByLoadId(loadId);
+            for (OpenLoadDetail openLoadDetail : openLoadDetails) {
+                openLoadDetail.setOrderStatus(Status.CREATED);
+                openLoadDetailRepo.save(openLoadDetail);
+            }
+
+            response.setStatusCode(200);
+            response.setMessage("Order cancelled successfully");
+
+
         } catch (Exception e) {
             response.setStatusCode(500);
             response.setMessage("Internal Error : " + e.getMessage());

@@ -10,9 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface LoadMasterRepo extends JpaRepository<LoadMaster, Long> {
-    Optional<LoadMaster> findByPhoneNumberAndLoadStatusIn(String phoneNumber, List<Status> statuses);
-
-    Optional<LoadMaster> findByLoadId(String loadId);
-
     List<LoadMaster> findByLoadStatusIn(List<Status> statuses);
+    Optional<LoadMaster> findByLoadIdAndLoadStatusIn(String loadId, List<Status> loadStatuses);
+
 }

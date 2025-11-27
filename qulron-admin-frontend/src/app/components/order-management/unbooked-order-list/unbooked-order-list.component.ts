@@ -236,7 +236,6 @@ export class UnbookedOrderListComponent {
       this.orderService.getUnBookedOrders(token).subscribe({
         next: (response) => {
           if (response.statusCode == 200) {
-            console.log(response);
             this.orders = response.unbookedOrderInfoList;
             if (this.orders) {
               this.filteredTableData = this.orders;

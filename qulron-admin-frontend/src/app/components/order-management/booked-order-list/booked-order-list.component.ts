@@ -13,7 +13,7 @@ import { DynamicItem } from '../../../core/models/class/dynamic-item';
 import { OrderManagementService } from '../../../core/service/order-management.service';
 
 @Component({
-  selector: 'app-order-list',
+  selector: 'app-booked-order-list',
   imports: [CommonModule],
   templateUrl: './booked-order-list.component.html',
   styleUrl: './booked-order-list.component.css',
@@ -243,7 +243,6 @@ export class BookedOrderListComponent {
       this.orderService.getCurrentOrders(token).subscribe({
         next: (response) => {
           if (response.statusCode == 200) {
-            console.log(response);
             this.orders = response.bookedOrders;
             if (this.orders){
               this.filteredTableData = this.orders;
@@ -270,10 +269,10 @@ export class BookedOrderListComponent {
     }
   }
 
-  CancelOrder(order_number: string, order_id: number) {
+  CancelOrder(loadId: string, order_numbers: string) {
     this.popupService.confirm(
       'Cancel Order',
-      `Are you sure you want to cancel submission for this order and all orders related to it: ${order_number} ?`,
+      `Are you sure you want to cancel submission for this order and all orders related to it: ${order_numbers} ?`,
       () => {
         try {
           const token = sessionStorage.getItem('token');
@@ -281,34 +280,30 @@ export class BookedOrderListComponent {
             throw new Error('No token found');
           }
           // Use cancelOrder method (PUT request)
-          this.orderService.cancelOrder(order_id, token).subscribe({
+          this.orderService.cancelOrder(loadId, token).subscribe({
             next: (response) => {
               if (response.statusCode == 200) {
                 this.popupService.show(
                   `Order Cancelled Successfully`,
                   `${response.message}`
                 );
-                this.loadOrders();
+                this.refresh() ;
               } else {
                 this.popupService.show(`Error`, `${response.message}`);
-                this.loadOrders();
+                this.refresh() ;
               }
             },
           });
         } catch (error: any) {
           this.popupService.show(`Error`, `${error.message}`);
-          this.loadOrders();
+          this.refresh();
         }
       }
     );
   }
 
-  async updateUser(username: string) {
-    const { UpdateOrderComponent } = await import(
-      '../update-order/update-order.component'
-    );
-    this.dcService.loadComponent(
-      new DynamicItem(UpdateOrderComponent, { username })
-    );
+  refresh(){
+    this.filteredTableData = [];
+    this.loadOrders() ;
   }
 }

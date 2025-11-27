@@ -34,9 +34,9 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getBookedOrders(request));
     }
 
-    @PutMapping("/cancel/{order_id}")
-    public ResponseEntity<BookedOrderResponseDTO> cancelOrder(@PathVariable Long order_id, HttpServletRequest request) {
-        return ResponseEntity.ok(orderService.clearOrderSubmission(request, order_id));
+    @PutMapping("/cancel/{load_id}")
+    public ResponseEntity<BookedOrderResponseDTO> cancelOrder(@PathVariable String load_id, HttpServletRequest request) {
+        return ResponseEntity.ok(orderService.clearOrderSubmission(request, load_id));
     }
 
     /**

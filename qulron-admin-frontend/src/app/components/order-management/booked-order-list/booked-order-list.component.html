@@ -24,7 +24,7 @@
               <button
                 *ngIf="order.orderStatus == 'CREATED'"
                 class="delete-button"
-                (click)="CancelOrder(order.orderNumber, order.id)"
+                (click)="CancelOrder(order.loadId, order.orderNumbers)"
               >
                 Cancel Order Submission
               </button>
