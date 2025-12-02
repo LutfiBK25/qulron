@@ -7,7 +7,7 @@ SELECT color, wh_id, order_numbers, check_in_status,
 FROM (
     SELECT
         CASE 
-            WHEN qulron.msg_type = 'ADD01' THEN '{{BGCOLOR=#E5FAFF}}'
+            WHEN qulron.msg_type = 'ADD01' THEN NULL
             WHEN qulron.msg_type = 'ADD02' THEN '{{BGCOLOR=#6BE005}}'
         END AS color,
 

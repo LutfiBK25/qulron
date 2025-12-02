@@ -164,6 +164,118 @@ END;
 $$;
 
 
+-- ADD03: Process new driver task  
+CREATE OR REPLACE FUNCTION process_add03_message(
+    p_load_id VARCHAR(30),
+    p_current_user VARCHAR(30)
+) RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_existing_count INTEGER := 0;
+BEGIN
+    -- Validate required fields
+    IF p_load_id IS NULL OR TRIM(p_load_id) = '' THEN
+        RAISE EXCEPTION 'Load Id is required';
+    END IF;
+    IF p_current_user IS NULL OR TRIM(p_current_user) = '' THEN
+        RAISE EXCEPTION 'User is required';
+    END IF;
+
+    -- Check if there's already a task being processed for this load
+    SELECT COUNT(*) INTO v_existing_count 
+    FROM t_open_load
+    WHERE load_id = p_load_id AND status NOT IN ('80'.'90');
+
+    -- Prevent concurrent processing by checking for existing active tasks
+    IF v_existing_count = 0 THEN
+        RAISE EXCEPTION 'There is no order to ship in the system';
+    END IF;
+
+    -- Update Order to shipped for both open_load and load_master
+	-- Updating Open Tables
+	UPDATE t_open_order
+	SET status = '90', record_update_id = p_current_user , record_update_date = NOW()
+	WHERE order_number IN
+	(
+		SELECT order_number FROM t_open_load_detail
+		WHERE load_id = p_load_id
+	)
+
+	UPDATE t_open_load_detail
+	SET status = '90'
+	WHERE load_id = p_load_id
+	
+    UPDATE t_open_load
+	SET status = '90', record_update_id = p_current_user , record_update_date = NOW()
+	WHERE load_id = p_load_id
+
+	-- Updating Main Tables
+    UPDATE t_order
+	SET status = '90', record_update_id = p_current_user , record_update_date = NOW()
+	WHERE order_number IN
+	(
+		SELECT order_number FROM t_load_detail
+		WHERE load_id = p_load_id
+	)
+
+	UPDATE t_load_detail
+	SET status = '90'
+	WHERE load_id = p_load_id
+	
+    UPDATE t_load_master
+	SET status = '90', record_update_id = p_current_user , record_update_date = NOW()
+	WHERE load_id = p_load_id
+END;
+$$;
+
+-- ADD04: Process new driver task  
+CREATE OR REPLACE FUNCTION process_add04_message(
+    p_load_id VARCHAR(30),
+	p_appointment_datetime TIMESTAMP,
+    p_current_user VARCHAR(30)
+) RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_existing_count INTEGER := 0;
+BEGIN
+    -- Validate required fields
+    IF p_load_id IS NULL OR TRIM(p_load_id) = '' THEN
+        RAISE EXCEPTION 'Load Id is required';
+    END IF;
+    IF p_task_area IS NULL OR TRIM(p_appointment_datetime) = '' THEN
+        RAISE EXCEPTION 'Task area is required';
+    END IF;
+    IF p_current_user IS NULL OR TRIM(p_current_user) = '' THEN
+        RAISE EXCEPTION 'User is required';
+    END IF;
+
+    -- Check if there's already a task being processed for this load
+    SELECT COUNT(*) INTO v_existing_count 
+    FROM t_open_load
+    WHERE load_id = p_load_id;
+
+    -- Prevent concurrent processing by checking for existing active tasks
+    IF v_existing_count = 0 THEN
+        RAISE EXCEPTION 'There is no load to assign the appointment to';
+    END IF;
+
+    -- Update Appointment Record
+    UPDATE t_open_load
+	SET appointment_datetime = p_appointment_datetime
+	WHERE load_id = p_load_id
+	AND status = '00';
+
+	UPDATE t_load_master
+	SET appointment_datetime = p_appointment_datetime
+	WHERE load_id = p_load_id;
+    
+END;
+$$;
+
+
+
 -- Main message processor (no transaction control)
 CREATE OR REPLACE PROCEDURE process_wms_rcv_messages(
     OUT p_processed_count INTEGER,
@@ -219,8 +331,7 @@ BEGIN
                         msg_record.broker_name,
                         v_current_user,
                         msg_record.potential_weight
-                    );
-                    
+                    ); 
                 WHEN 'ADD02' THEN
                     PERFORM process_add02_message(
                         msg_record.load_id,
@@ -228,7 +339,17 @@ BEGIN
                         msg_record.dest_location,
                         v_current_user
                     );
-                    
+                WHEN 'ADD03' THEN
+                    PERFORM process_add03_message(
+                        msg_record.load_id,
+                        v_current_user
+                    );
+				WHEN 'ADD04' THEN
+                    PERFORM process_add04_message(
+                        msg_record.load_id,
+                        msg_record.appointment_datetime,
+                        v_current_user
+                    );        
                 ELSE
                     RAISE EXCEPTION 'Unknown message type: %', msg_record.msg_type;
             END CASE;
