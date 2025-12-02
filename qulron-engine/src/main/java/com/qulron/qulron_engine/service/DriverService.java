@@ -458,7 +458,8 @@ public class DriverService {
                 return response;
             }
 
-            Optional<LoadMaster> loadMaster = loadMasterRepo.findByPhoneNumberAndLoadStatusIn(phoneNumber, List.of(Status.CREATED, Status.ACTIVATED, Status.STARTED));
+            Optional<LoadMaster> loadMaster = loadMasterRepo.findByPhoneNumberAndLoadStatusIn(phoneNumber,
+                    List.of(Status.CREATED, Status.ACTIVATED, Status.STARTED, Status.FINISHED));
             if (loadMaster.isEmpty()) {
                 response.setStatusCode(400);
                 response.setMessage("This phone number has no current order. Please use a different phone number or contact us if you think this is wrong");
@@ -500,7 +501,11 @@ public class DriverService {
 
             boolean isDriverHere = foundLoad.getLoadStatus() != Status.CREATED && foundLoad.getLoadStatus() != Status.CANCELLED;
 
-            Task task = taskService.getTask(foundLoad.getId());
+            Task task = new Task();
+
+            if (foundLoad.getLoadStatus() != Status.FINISHED) {
+                task = taskService.getTask(foundLoad.getId());
+            }
 
             response.setStatusCode(200);
             response.setMessage("Order Data Retrieved");
@@ -519,7 +524,7 @@ public class DriverService {
             String address = foundFirstOrder.getDestCity() + " " + foundFirstOrder.getDestState() + " " + foundFirstOrder.getDestCountryCode();
             response.setCustomerAddress(address);
 
-            if (task != null) {
+            if (task != null &&  foundLoad.getLoadStatus() != Status.FINISHED) {
                 YardLocation yardLocation = yardLocationService.getYardLocationData(task.getDestinationArea(), task.getDestinationLocation());
 
                 if (yardLocation != null) {
@@ -534,7 +539,11 @@ public class DriverService {
                     response.setLongitude(null);
                 }
 
-            } else {
+            } else if (foundLoad.getLoadStatus() != Status.FINISHED) {
+                YardLocation yardLocation = yardLocationService.getYardLocationData("EXIT", "EXIT");
+            }
+
+            else {
                 response.setCurrentDestinationArea(null);
                 response.setCurrentDestinationLocation(null);
                 response.setLatitude(null);

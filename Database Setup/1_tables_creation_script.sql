@@ -284,6 +284,7 @@ GRANT USAGE, SELECT ON SEQUENCE t_driver_location_dl_id_seq TO qulronwebapp;
 
 
 INSERT INTO t_yard_location(task_destination_area,task_destination_location,area,location,latitude,longitude,record_create_id, record_create_date) VALUES
+('EXIT','EXIT','EXIT','EXIT',40.52092168218135, -74.33031143249039,'DUMMY',NOW()),
 ('AB01','L0DOCK08','Edison Warehouse','Dock Door 08',0,0,'DUMMY',NOW()),
 ('AB01','L0DOCK09','Edison Warehouse','Dock Door 09',0,0,'DUMMY',NOW()),
 ('AB01','L0DOCK10','Edison Warehouse','Dock Door 10',0,0,'DUMMY',NOW()),

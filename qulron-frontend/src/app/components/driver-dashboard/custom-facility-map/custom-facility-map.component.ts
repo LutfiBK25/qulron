@@ -52,7 +52,8 @@ export class CustomFacilityMapComponent
   private facilityMarkers: L.Marker[] = [];
   private facilityAreas: L.Polygon[] = [];
   private entrance = L.latLng(40.52089277603273, -74.3238705322726);
-  private exit = L.latLng(40.52255875661384, -74.33348546469773);
+  // 40.52255875661384, -74.33348546469773
+  private exit = L.latLng(40.52092168218135, -74.33031143249039);
   private scaleRoadCord = L.latLng(40.522938276208464, -74.32479685593358);
 
   isLocationTracking = false; // This is used to check if location tracking is enabled
@@ -590,8 +591,21 @@ export class CustomFacilityMapComponent
       }
       // if the driver is within the facility box
       else {
+        // if the driver is going out (load is shipped)
+        if (dashData.currentDestinationArea === 'EXIT'){
+          // if the driver is in keasby box
+          if (this.isInKeasbyBox(start)) {
+            assignedWaypoints = [start, this.scaleRoadCord, destination];
+            return assignedWaypoints;
+          }
+          // if the driver is in edison/yard box
+          else {
+            assignedWaypoints = [start, this.exit, this.entrance, destination];
+            return assignedWaypoints;
+          }
+        }
         // if the driver is going to keasby
-        if (dashData.currentDestinationArea === 'Keasby Warehouse') {
+        else if (dashData.currentDestinationArea === 'Keasby Warehouse') {
           // if the driver is in keasby box
           if (this.isInKeasbyBox(start)) {
             assignedWaypoints = [start, destination];
