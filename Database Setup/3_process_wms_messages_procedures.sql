@@ -185,7 +185,7 @@ BEGIN
     -- Check if there's already a task being processed for this load
     SELECT COUNT(*) INTO v_existing_count 
     FROM t_open_load
-    WHERE load_id = p_load_id AND status NOT IN ('80'.'90');
+    WHERE load_id = p_load_id AND status NOT IN ('80','90');
 
     -- Prevent concurrent processing by checking for existing active tasks
     IF v_existing_count = 0 THEN
@@ -200,15 +200,15 @@ BEGIN
 	(
 		SELECT order_number FROM t_open_load_detail
 		WHERE load_id = p_load_id
-	)
+	);
 
 	UPDATE t_open_load_detail
 	SET status = '90'
-	WHERE load_id = p_load_id
+	WHERE load_id = p_load_id;
 	
     UPDATE t_open_load
 	SET status = '90', record_update_id = p_current_user , record_update_date = NOW()
-	WHERE load_id = p_load_id
+	WHERE load_id = p_load_id;
 
 	-- Updating Main Tables
     UPDATE t_order
@@ -217,15 +217,15 @@ BEGIN
 	(
 		SELECT order_number FROM t_load_detail
 		WHERE load_id = p_load_id
-	)
+	);
 
 	UPDATE t_load_detail
 	SET status = '90'
-	WHERE load_id = p_load_id
+	WHERE load_id = p_load_id;
 	
     UPDATE t_load_master
 	SET status = '90', record_update_id = p_current_user , record_update_date = NOW()
-	WHERE load_id = p_load_id
+	WHERE load_id = p_load_id;
 END;
 $$;
 
